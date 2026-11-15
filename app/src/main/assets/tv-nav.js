@@ -129,7 +129,15 @@
     }
   }
 
+  // Das Symbol einer Kachel hat eine eigene Aktion, wird per Fernbedienung aber nicht gebraucht -> überspringen
+  function inTileIcon(el) {
+    var n = el;
+    while (n) { if (n.tagName === 'HA-TILE-ICON') return true; n = parentOf(n); }
+    return false;
+  }
+
   function filter(els) {
+    els = els.filter(function (e) { return !inTileIcon(e); });
     var rects = els.map(rectOf), seen = {}, items = [];
     els.forEach(function (el, i) {
       var r = rects[i];
@@ -412,7 +420,7 @@
     })(document, 0);
     console.log('TVDBG dialogs: ' + out.join(' | '));
   }
-  console.log('TVDBG tv-nav v15 geladen');
+  console.log('TVDBG tv-nav v16 geladen');
   // Workaround: Der Detail-Dialog (Bottom-Sheet) erhält im Amazon-WebView die Höhe 0 und bleibt unsichtbar.
   // Dann Höhe erzwingen (Ursache vermutlich Viewport-Einheiten wie dvh/svh) und Werte protokollieren.
   function fixDialogs() {
