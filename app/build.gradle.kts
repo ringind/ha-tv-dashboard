@@ -15,8 +15,8 @@ android {
         // 28 = Android 9 (Fire OS 7). Deckt Fire TV Stick 4K (Fire OS 7/8) und die waipu.tv Box (Android TV 14) ab.
         minSdk = 28
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "1.0.0"
     }
 
     buildTypes {

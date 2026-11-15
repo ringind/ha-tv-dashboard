@@ -8,14 +8,70 @@ Läuft auf der **waipu.tv Box** (Android TV 14) und dem **Fire TV Stick 4K** (Fi
 
 Die App hat zwei Ansichten (Einstellung per QR-Code am Handy):
 
-- **Home-Assistant-Oberfläche (Standard):** zeigt das echte HA-Frontend in einer WebView, also dasselbe Aussehen wie im Browser oder in der Companion-App, inklusive Theme und Custom-Karten. Ein eingeschleustes Skript (`app/src/main/assets/tv-nav.js`) übernimmt die Bedienung: Steuerkreuz springt räumlich zwischen bedienbaren Elementen, die aktive Karte bekommt einen Rahmen, OK sendet einen Mausklick. Kurz, lang und doppelt werten die Karten von Home Assistant selbst aus (`tap_action`, `hold_action`, `double_tap_action`). Bei offenem Dialog wird nur darin navigiert, links/rechts stellt Schieberegler ein. Anmeldung ohne Eingabe über den Long-Lived Token.
-  *Zurück:* eine Seite zurück (Dialoge schließen sich); auf der obersten Ebene öffnet sich ein Menü (Neu laden, Einstellungen, Beenden). Die Menü-Taste der Fernbedienung öffnet es direkt.
-  Einstellbar: Startseite (z. B. `dashboard-astrion/home`, leer = Standard-Dashboard) und Zoom.
+- **Home-Assistant-Oberfläche (Standard):** zeigt das echte HA-Frontend in einer WebView, also dasselbe Aussehen wie im Browser oder in der Companion-App, inklusive Theme. Ein eingeschleustes Skript (`app/src/main/assets/tv-nav.js`) übernimmt die Bedienung, siehe [Bedienung in der HA-Oberfläche](#bedienung-in-der-ha-oberfläche). Anmeldung ohne Eingabe über den Long-Lived Token.
+  Einstellbar: Startseite (z. B. `dashboard-tv/home`, leer = Standard-Dashboard), Zoom und Rahmenfarbe.
 - **Einfache Kacheln (nativ):** eigene, vereinfachte Darstellung (siehe unten), unabhängig vom HA-Frontend.
 
-Die Beschreibung der Tasten unten gilt für die native Ansicht. In der Web-Ansicht gelten die in HA konfigurierten Aktionen der Karten.
+Die Tastenbeschreibung im Abschnitt „Bedienung“ gilt für die native Ansicht. Für die HA-Oberfläche gilt der Abschnitt davor.
 
-## Bedienung
+## Bedienung in der HA-Oberfläche
+
+| Taste | Funktion |
+|---|---|
+| Steuerkreuz | räumlich zur nächsten Karte; die aktive Karte trägt einen Rahmen (Kachel-Symbole werden übersprungen) |
+| OK (kurz / lang / doppelt) | wird als Touch/Klick an die Karte gegeben; `tap_action`, `hold_action` und `double_tap_action` wertet Home Assistant selbst aus |
+| OK auf Regler oder Farbwähler | schaltet einen **Bearbeiten-Modus** ein (Rahmen wird grün): Steuerkreuz ändert den Wert, erneut OK beendet den Modus |
+| Zurück (kurz) | eine Seite zurück, Dialoge schließen sich; auf der obersten Ebene öffnet sich das Menü |
+| Zurück (lang) | App in den Hintergrund schieben (bleibt geladen im Speicher) |
+| Menü | öffnet das Menü direkt: In den Hintergrund, Weiter, Neu laden, Einstellungen, Beenden |
+
+Details:
+
+- **Regler** (Helligkeit, Farbtemperatur, Rollladenposition …): Nach OK bewegt rechts/oben den Regler sichtbar nach rechts/oben, links/unten entsprechend zurück, unabhängig davon, wie der Regler intern zählt (eine kurze Kalibrierung misst die Richtung). Ein Druck entspricht etwa 5 % des Wertebereichs.
+- **Farbwähler:** Nach OK bewegt das Steuerkreuz den Punkt in kleinen Schritten.
+- **Dialoge** (More-Info): Es wird nur im Dialog navigiert. Der Rahmen liegt dabei in der obersten Ebene des Browsers, damit er auch über Dialogen und Auswahllisten sichtbar bleibt.
+- **Amazon-WebView:** Im Fire-OS-WebView werten die Einheiten `vh`/`dvh` zu 0 aus; dadurch bekam der Detail-Dialog (Bottom-Sheet) die Höhe 0. `tv-nav.js` setzt dafür beim Öffnen eine Pixelhöhe und verkleinert den Dialog auf 70 %.
+- **Ladezeit:** Das HA-Frontend lädt global alle Custom-Karten und Erweiterungen (HACS, UIX, browser_mod …). Für das TV-Dashboard werden diese Skripte im WebView leer beantwortet (`BLOCK_CUSTOM_JS` in `WebDashboardScreen.kt`; ausgenommen `hass-hue-icons`). Das TV-Dashboard muss dafür mit Standardkarten (Kachel, Bereich, Überschrift, Uhr, Kurzbefehl) auskommen.
+
+### Das „TV Dashboard“ in Home Assistant
+
+Das mitgelieferte Bedienkonzept ist auf ein eigenes, schlankes Dashboard (`dashboard-tv`) ausgelegt: Sections-Ansicht, Übersicht, Räume, Beleuchtung und Beschattung, keine Navigationsleiste (der Zurück-Weg läuft über die Fernbedienung). Es gibt nur Standardkarten und eine Aktion je Kachel:
+
+- Licht-/Schalterkachel: Tippen schaltet um, Halten öffnet die Details.
+- Rollladenkachel: Tippen schließt, Halten öffnet, Doppeltippen stoppt.
+
+Das Dashboard liegt in Home Assistant und nicht in diesem Repo.
+
+### Im Hintergrund bereithalten
+
+- Die App startet beim Öffnen einen Dienst im Vordergrund (`KeepAliveService`, Dauerbenachrichtigung mit niedrigster Wichtigkeit). Dadurch bleibt der Prozess samt geladenem Dashboard im Speicher, und die App steht nach „In den Hintergrund“ sofort bereit.
+- Beim Zurückkehren lädt die Seite nach mehr als 30 Minuten Pause neu; bei kürzerer Pause nur, wenn die Verbindung zu Home Assistant abgerissen ist.
+- *Beenden* im Menü stoppt den Dienst und schließt die App ganz.
+- Optional: `adb shell dumpsys deviceidle whitelist +de.ring.hatv` nimmt die App von der Energiesparfunktion aus.
+
+### Zurück lang aus einer anderen App (optional)
+
+`BackKeyService` ist ein Bedienungshilfendienst, der nur die Zurück-Taste auswertet, wenn die App nicht im Vordergrund ist. Ein langer Druck holt die App dann nach vorn.
+
+```bash
+adb shell settings put secure enabled_accessibility_services de.ring.hatv/de.ring.hatv.BackKeyService
+adb shell settings put secure accessibility_enabled 1
+adb shell appops set de.ring.hatv SYSTEM_ALERT_WINDOW allow   # Erlaubnis, aus dem Hintergrund nach vorn zu holen
+```
+
+Einschränkung: Tasten, die per **HDMI-CEC** (zum Beispiel Fernbedienung eines Projektors oder Fernsehers) ankommen, schickt Android als eingespielte Ereignisse ein, und die sehen Bedienungshilfen nicht. Mit der Original-Fernbedienung der Box funktioniert es. Mit CEC-Fernbedienung bleibt das Menü (*In den Hintergrund*) oder das Starten der App über Home Assistant.
+
+### Fehlersuche
+
+Die Skript- und Konsolenausgaben des WebViews landen mit dem Tag `TVDBG` im Logcat:
+
+```bash
+adb -s <IP>:5555 logcat -s TVDBG | grep -E "TVDBG (tv-nav|event|dialogs|fix|cal|slider|error)"
+```
+
+`tv-nav v… geladen` verrät, welche Skriptversion läuft (zum Prüfen, ob die neue APK installiert ist).
+
+## Bedienung (native Ansicht)
 
 | Taste | Funktion |
 |---|---|
@@ -74,7 +130,7 @@ adb connect <IP-der-Box>:5555
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Alternativ die APK z. B. per Downloader-App (Fire TV) oder „Send Files to TV“ übertragen und installieren.
+Alternativ die APK aus den [Releases](../../releases) laden und z. B. per Downloader-App (Fire TV) oder „Send Files to TV“ übertragen und installieren.
 
 ## Technik
 
@@ -92,3 +148,7 @@ Alternativ die APK z. B. per Downloader-App (Fire TV) oder „Send Files to TV�
 | `ui/PageScreen.kt` | Kachel-Raster mit Fokusrahmen und Fokus-Wiederherstellung |
 | `ui/DetailScreen.kt` | Detailansicht mit Regler |
 | `ui/SetupScreen.kt` | QR-Einrichtung |
+| `ui/WebDashboardScreen.kt` | WebView-Ansicht, Menü, Hintergrund-Logik, Blockieren der Custom-Skripte |
+| `assets/tv-nav.js` | Fernbedienungs-Navigation in der HA-Oberfläche |
+| `KeepAliveService.kt` | Dienst im Vordergrund, hält die App im Speicher |
+| `BackKeyService.kt` | Bedienungshilfendienst: langer Zurück-Druck holt die App nach vorn |
