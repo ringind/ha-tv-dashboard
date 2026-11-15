@@ -308,6 +308,27 @@
   window.addEventListener('error', function (e) { console.log('TVDBG error ' + e.message); });
   window.addEventListener('unhandledrejection', function (e) { console.log('TVDBG reject ' + e.reason); });
 
+  // Diagnose: Zustand der Dialoge nach hass-more-info protokollieren
+  function dumpDialogs() {
+    var out = [];
+    (function walk(root, depth) {
+      if (!root || depth > 12 || out.length > 12) return;
+      var all = root.querySelectorAll ? root.querySelectorAll('*') : [];
+      for (var i = 0; i < all.length; i++) {
+        var e = all[i], n = e.localName || '';
+        if (/dialog|more-info|wa-dialog/.test(n)) {
+          var r = e.getBoundingClientRect(), cs = getComputedStyle(e);
+          out.push(n + ' open=' + (e.open !== undefined ? e.open : e.hasAttribute('open')) + ' rect=' +
+            [r.left, r.top, r.width, r.height].map(Math.round).join(',') + ' op=' + cs.opacity + ' vis=' + cs.visibility +
+            ' disp=' + cs.display + ' tf=' + cs.transform + ' clip=' + cs.clipPath + ' anim=' + (e.getAnimations ? e.getAnimations().length : '-'));
+        }
+        if (e.shadowRoot) walk(e.shadowRoot, depth + 1);
+      }
+    })(document, 0);
+    console.log('TVDBG dialogs: ' + out.join(' | '));
+  }
+  window.addEventListener('hass-more-info', function () { setTimeout(dumpDialogs, 300); setTimeout(dumpDialogs, 1500); }, true);
+
   function pressDown() {
     var t = target();
     if (!t) { nav('down'); return; }
