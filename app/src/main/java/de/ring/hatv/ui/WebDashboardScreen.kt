@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.net.Uri
 import android.view.KeyEvent
 import android.webkit.RenderProcessGoneDetail
+import android.webkit.ConsoleMessage
+import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
@@ -111,6 +113,12 @@ fun WebDashboardScreen(
                     if (docStart) WebViewCompat.addDocumentStartJavaScript(this, seed, setOf(origin))
                     var seeded = docStart
 
+                    webChromeClient = object : WebChromeClient() {
+                        override fun onConsoleMessage(m: ConsoleMessage): Boolean {
+                            android.util.Log.i("TVDBG", m.message() + " (" + m.sourceId() + ":" + m.lineNumber() + ")")
+                            return true
+                        }
+                    }
                     webViewClient = object : WebViewClient() {
                         override fun onPageFinished(view: WebView, url: String?) {
                             if (!seeded) {
