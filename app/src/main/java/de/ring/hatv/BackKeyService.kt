@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService
 import android.content.Intent
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 
@@ -17,12 +18,19 @@ class BackKeyService : AccessibilityService() {
     private var fired = false
     private val bringToFront = Runnable {
         fired = true
+        Log.i(TAG, "langer Druck erkannt -> App nach vorn")
         runCatching {
             startActivity(
                 Intent(this, MainActivity::class.java)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
             )
-        }
+            Log.i(TAG, "startActivity aufgerufen")
+        }.onFailure { Log.w(TAG, "startActivity fehlgeschlagen: $it") }
+    }
+
+    override fun onServiceConnected() {
+        super.onServiceConnected()
+        Log.i(TAG, "Dienst verbunden")
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {}
@@ -30,6 +38,7 @@ class BackKeyService : AccessibilityService() {
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
         if (event.keyCode != KeyEvent.KEYCODE_BACK) return false
+        Log.i(TAG, "BACK action=${event.action} repeat=${event.repeatCount} visible=${MainActivity.visible}")
         // Im Vordergrund bearbeitet die App den langen Druck selbst
         if (MainActivity.visible) { handler.removeCallbacks(bringToFront); fired = false; return false }
         return when (event.action) {
@@ -51,5 +60,5 @@ class BackKeyService : AccessibilityService() {
         }
     }
 
-    private companion object { const val LONG_PRESS_MS = 700L }
+    private companion object { const val LONG_PRESS_MS = 700L; const val TAG = "BackKeyService" }
 }
