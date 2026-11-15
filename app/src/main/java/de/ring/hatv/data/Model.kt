@@ -58,6 +58,7 @@ class Registry(
     val areas: Map<String, Area>,
     val devices: Map<String, Device>,
     val entities: Map<String, RegEntry>,
+    val errors: List<String> = emptyList(),
 ) {
     fun areaOf(entityId: String): String? {
         val r = entities[entityId] ?: return null
@@ -66,19 +67,29 @@ class Registry(
 
     companion object {
         suspend fun load(client: HaClient): Registry {
-            val areas = client.call("config/area_registry/list").jsonArray.mapNotNull { e ->
+            val errors = mutableListOf<String>()
+            // Fehlt die Berechtigung (z. B. Nicht-Admin-Benutzer), läuft das Dashboard trotzdem
+            // weiter, nur ohne Bereiche bzw. ohne Filter für versteckte Entitäten.
+            suspend fun list(type: String): JsonArray = try {
+                client.call(type).jsonArray
+            } catch (e: Exception) {
+                errors += "$type: ${e.message}"
+                JsonArray(emptyList())
+            }
+
+            val areas = list("config/area_registry/list").mapNotNull { e ->
                 val o = e as? JsonObject ?: return@mapNotNull null
                 val id = o.str("area_id") ?: return@mapNotNull null
                 Area(id, o.str("name") ?: id)
             }.associateBy { it.id }
 
-            val devices = client.call("config/device_registry/list").jsonArray.mapNotNull { e ->
+            val devices = list("config/device_registry/list").mapNotNull { e ->
                 val o = e as? JsonObject ?: return@mapNotNull null
                 val id = o.str("id") ?: return@mapNotNull null
                 Device(id, o.str("name_by_user") ?: o.str("name") ?: id, o.str("area_id"))
             }.associateBy { it.id }
 
-            val entities = client.call("config/entity_registry/list").jsonArray.mapNotNull { e ->
+            val entities = list("config/entity_registry/list").mapNotNull { e ->
                 val o = e as? JsonObject ?: return@mapNotNull null
                 val id = o.str("entity_id") ?: return@mapNotNull null
                 RegEntry(
@@ -90,7 +101,7 @@ class Registry(
                 )
             }.associateBy { it.entityId }
 
-            return Registry(areas, devices, entities)
+            return Registry(areas, devices, entities, errors)
         }
     }
 }

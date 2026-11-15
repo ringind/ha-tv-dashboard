@@ -85,6 +85,8 @@ private fun Dashboard(vm: AppViewModel, accent: androidx.compose.ui.graphics.Col
     val states by vm.states.collectAsStateWithLifecycle()
     val registry by vm.registry.collectAsStateWithLifecycle()
     val lovelace by vm.lovelace.collectAsStateWithLifecycle()
+    val err by vm.lastError.collectAsStateWithLifecycle()
+    val cfg by vm.config.collectAsStateWithLifecycle()
     var lastBack by remember { mutableLongStateOf(0L) }
 
     // Zurück: eine Ebene hoch; auf der obersten Ebene zweimal drücken zum Beenden
@@ -102,14 +104,18 @@ private fun Dashboard(vm: AppViewModel, accent: androidx.compose.ui.graphics.Col
     val reg = registry
     if (reg == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(
-                when (status) {
-                    ConnStatus.Connected -> "Lade Dashboard …"
-                    ConnStatus.Disconnected -> "Keine Verbindung zu Home Assistant – neuer Versuch läuft …"
-                    else -> "Verbinde mit Home Assistant …"
-                },
-                color = Muted, fontSize = 20.sp,
-            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    when (status) {
+                        ConnStatus.Connected -> "Lade Dashboard …"
+                        ConnStatus.Disconnected -> "Keine Verbindung zu Home Assistant – neuer Versuch läuft …"
+                        else -> "Verbinde mit Home Assistant …"
+                    },
+                    color = Muted, fontSize = 20.sp,
+                )
+                cfg?.url?.let { Text(it, color = Muted, fontSize = 15.sp, modifier = Modifier.padding(top = 10.dp)) }
+                err?.let { Text(it, color = ErrorColor, fontSize = 16.sp, modifier = Modifier.padding(top = 10.dp)) }
+            }
         }
         return
     }

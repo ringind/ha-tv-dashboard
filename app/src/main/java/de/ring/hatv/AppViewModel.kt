@@ -39,6 +39,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     val registry = MutableStateFlow<Registry?>(null)
     val lovelace = MutableStateFlow<JsonObject?>(null)
     val messages = MutableSharedFlow<String>(extraBufferCapacity = 8)
+    val lastError = MutableStateFlow<String?>(null)
 
     /** Navigationsstapel: jede Ebene ist ein Eintrag, Zurück entfernt den obersten. */
     val stack = mutableStateListOf(NavEntry("home"))
@@ -92,6 +93,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         val cl = HaClient(c.url, c.token, scope)
         client = cl
         scope.launch { cl.states.collect { states.value = it } }
+        scope.launch { cl.lastError.collect { lastError.value = it } }
         scope.launch {
             cl.status.collect { st ->
                 status.value = st
@@ -111,7 +113,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     ?.takeIf { it["views"] != null }
             }
             lovelace.value = ll.await()
-            registry.value = reg.await()
+            val r = reg.await()
+            if (r.errors.isNotEmpty()) messages.tryEmit("Eingeschränkt: ${r.errors.first()}")
+            registry.value = r
         } catch (e: Exception) {
             messages.tryEmit("Laden fehlgeschlagen: ${e.message}")
         }

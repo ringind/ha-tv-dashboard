@@ -147,7 +147,11 @@ private class SetupServer(
             val accent = p["accent"]?.trim().orEmpty().ifEmpty { "#03A9F4" }
             return if (url.startsWith("http") && token.isNotEmpty()) {
                 onSave(Config(url.trimEnd('/'), token, accent))
-                html("<h2>✅ Gespeichert</h2><p>Die App auf dem Fernseher verbindet sich jetzt mit <b>${esc(url)}</b>.</p>")
+                val host = url.substringAfter("://").substringBefore('/').substringBefore(':')
+                val hint = if (host.endsWith(".local"))
+                    "<p>⚠️ Android TV kann <b>.local</b>-Namen oft nicht auflösen. Falls die Verbindung scheitert, bitte die IP-Adresse von Home Assistant verwenden (z. B. http://192.168.178.x:8123).</p>"
+                else ""
+                html("<h2>✅ Gespeichert</h2><p>Die App auf dem Fernseher verbindet sich jetzt mit <b>${esc(url)}</b>.</p>$hint")
             } else {
                 html("<h2>⚠️ Unvollständig</h2><p>Adresse (http/https) und Token werden benötigt.</p><p><a href='/'>Zurück</a></p>")
             }

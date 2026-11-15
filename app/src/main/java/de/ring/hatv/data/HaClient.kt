@@ -68,6 +68,10 @@ class HaClient(
     private val _status = MutableStateFlow(ConnStatus.Connecting)
     val status: StateFlow<ConnStatus> = _status
 
+    /** Letzte Verbindungs-Fehlermeldung (für die Anzeige auf dem Fernseher). */
+    private val _error = MutableStateFlow<String?>(null)
+    val lastError: StateFlow<String?> = _error
+
     fun start() {
         scope.launch { loop() }
     }
@@ -115,12 +119,14 @@ class HaClient(
                     }.toString()
                 )
                 "auth_ok" -> {
+                    _error.value = null
                     backoff = 1000L
                     _status.value = ConnStatus.Connected
                     ready.complete(Unit)
                     scope.launch { runCatching { subscribeEntities() } }
                 }
                 "auth_invalid" -> {
+                    _error.value = "Home Assistant hat den Token abgelehnt"
                     _status.value = ConnStatus.AuthFailed
                     webSocket.close(1000, "auth invalid")
                 }
@@ -148,6 +154,11 @@ class HaClient(
         }
 
         override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+            _error.value = buildString {
+                response?.let { append("HTTP ${it.code} · ") }
+                append(t.javaClass.simpleName)
+                t.message?.let { append(": $it") }
+            }
             closed.complete(Unit)
         }
     }
