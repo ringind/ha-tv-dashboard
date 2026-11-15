@@ -330,7 +330,33 @@
     })(document, 0);
     console.log('TVDBG dialogs: ' + out.join(' | '));
   }
-  console.log('TVDBG tv-nav v7 geladen');
+  console.log('TVDBG tv-nav v8 geladen');
+  // Workaround: Der Detail-Dialog (Bottom-Sheet) erhält im Amazon-WebView die Höhe 0 und bleibt unsichtbar.
+  // Dann Höhe erzwingen (Ursache vermutlich Viewport-Einheiten wie dvh/svh) und Werte protokollieren.
+  function fixDialogs() {
+    try {
+      (function walk(root, depth) {
+        if (!root || depth > 12) return;
+        var all = root.querySelectorAll ? root.querySelectorAll('dialog') : [];
+        for (var i = 0; i < all.length; i++) {
+          var e = all[i];
+          if (!e.open) continue;
+          var r = e.getBoundingClientRect();
+          if (r.height > 5) continue;
+          var cs = getComputedStyle(e);
+          console.log('TVDBG fix dialog h=' + cs.height + ' maxH=' + cs.maxHeight + ' minH=' + cs.minHeight +
+            ' pos=' + cs.position + ' inset=' + cs.inset + ' margin=' + cs.margin + ' cls=' + e.className);
+          e.style.setProperty('height', 'auto', 'important');
+          e.style.setProperty('min-height', '50vh', 'important');
+          e.style.setProperty('max-height', '90vh', 'important');
+        }
+        var any = root.querySelectorAll ? root.querySelectorAll('*') : [];
+        for (var j = 0; j < any.length; j++) if (any[j].shadowRoot) walk(any[j].shadowRoot, depth + 1);
+      })(document, 0);
+    } catch (e) { console.log('TVDBG fix-fehler ' + e); }
+  }
+  window.addEventListener('hass-more-info', function () { [250, 600, 1200].forEach(function (t) { setTimeout(fixDialogs, t); }); }, true);
+
   window.addEventListener('hass-more-info', function () { setTimeout(dumpDialogs, 300); setTimeout(dumpDialogs, 1500); }, true);
 
   function pressDown() {
