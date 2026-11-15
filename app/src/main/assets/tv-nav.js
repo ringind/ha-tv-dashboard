@@ -57,6 +57,8 @@
 
   // ---------------------------------------------------------------- Hilfsfunktionen
   function parentOf(n) {
+    // Flat-Tree: in Slots eingehängte Knoten gehören zum Slot (z. B. More-Info-Inhalt im Drawer-Dialog)
+    if (n.assignedSlot) return n.assignedSlot;
     var p = n.parentNode;
     if (!p) return null;
     if (p.nodeType === 11 && p.host) return p.host;       // Shadow-Root -> Host
@@ -163,8 +165,17 @@
   function invalidate() { cache.t = 0; }
 
   // ---------------------------------------------------------------- Auswahl
+  function inHeader(el) {
+    var n = el;
+    while (n) { if (n.tagName === 'HA-DIALOG-HEADER') return true; n = parentOf(n); }
+    return false;
+  }
   function first(list) {
     var best = null, bs = 1e12;
+    if (cache.dialog) {          // im Dialog zuerst die Bedienelemente, nicht den Zurück-Knopf im Kopf
+      var body = list.filter(function (el) { return !inHeader(el); });
+      if (body.length) list = body;
+    }
     list.forEach(function (el) {
       var r = rectOf(el);
       if (r.width < 14) return;
@@ -340,7 +351,7 @@
     })(document, 0);
     console.log('TVDBG dialogs: ' + out.join(' | '));
   }
-  console.log('TVDBG tv-nav v11 geladen');
+  console.log('TVDBG tv-nav v12 geladen');
   // Workaround: Der Detail-Dialog (Bottom-Sheet) erhält im Amazon-WebView die Höhe 0 und bleibt unsichtbar.
   // Dann Höhe erzwingen (Ursache vermutlich Viewport-Einheiten wie dvh/svh) und Werte protokollieren.
   function fixDialogs() {
