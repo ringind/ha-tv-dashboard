@@ -220,7 +220,7 @@
     return null;
   }
   // Tasten an einen Regler senden (ha-control-slider wertet code/key aus); mehrere Schritte pro Druck
-  function sliderKey(sl, key, n) {
+  function sliderKey(sl, key, n, frac) {
     var t = (sl.shadowRoot && sl.shadowRoot.querySelector('[role=slider]')) || sl;
     try { t.focus && t.focus({ preventScroll: true }); } catch (e) {}
     var kc = { ArrowUp: 38, ArrowDown: 40, ArrowLeft: 37, ArrowRight: 39 }[key];
@@ -231,9 +231,40 @@
     var mn = parseFloat(sl.min !== undefined ? sl.min : t.getAttribute('aria-valuemin'));
     var mx = parseFloat(sl.max !== undefined ? sl.max : t.getAttribute('aria-valuemax'));
     var stp = parseFloat(sl.step) || 1;
-    if (isFinite(mn) && isFinite(mx) && mx > mn) n = Math.max(1, Math.min(400, Math.round((mx - mn) * 0.05 / stp)));
+    if (isFinite(mn) && isFinite(mx) && mx > mn) n = Math.max(1, Math.min(400, Math.round((mx - mn) * (frac || 0.05) / stp)));
+    if (!n) n = 5;
     for (var i = 0; i < n; i++) t.dispatchEvent(ev('keydown'));
     t.dispatchEvent(ev('keyup'));
+  }
+  // Sichtbare Lage des Reglers (Cursor oder Balken) bestimmen, um die tatsächliche Bewegungsrichtung zu kennen
+  function sliderPos(sl) {
+    var r = sl.shadowRoot;
+    var m = r && (r.querySelector('.slider-track-cursor') || r.querySelector('[class*=cursor]') ||
+                  r.querySelector('.slider-track-bar') || r.querySelector('[class*=track-bar]') || r.querySelector('[class*=bar]'));
+    if (!m) return null;
+    var b = m.getBoundingClientRect();
+    return { x: b.left + b.width / 2, y: b.top + b.height / 2 };
+  }
+  // Kalibrierung: Einen Schritt „erhöhen" senden und messen, ob sich der Regler sichtbar nach rechts/oben bewegt.
+  // Manche Regler (z. B. Farbtemperatur, Rollladenposition) laufen umgekehrt.
+  function calibrate(e) {
+    var sl = e.slider, vert = rectOf(sl).height > rectOf(sl).width;
+    function trial(key, back, next) {
+      var p0 = sliderPos(sl);
+      if (!p0) { e.s = 1; e.ready = true; return; }
+      sliderKey(sl, key, 0, 0.03);
+      setTimeout(function () {
+        var p1 = sliderPos(sl);
+        var d = p1 ? (vert ? (p0.y - p1.y) : (p1.x - p0.x)) : 0;   // > 0: nach oben bzw. rechts
+        if (Math.abs(d) >= 1) {
+          sliderKey(sl, back, 0, 0.03);                             // Testbewegung zurücknehmen
+          e.s = (key === 'ArrowRight' ? 1 : -1) * (d > 0 ? 1 : -1);
+          e.ready = true;
+        } else if (next) { trial(next, 'ArrowRight', null); }
+        else { e.s = 1; e.ready = true; }
+      }, 220);
+    }
+    trial('ArrowRight', 'ArrowLeft', 'ArrowLeft');
   }
   // Tippen an Koordinaten (Maus- und Touch-Ereignisse), z. B. um die Markierung im Farbwähler zu setzen
   function tapAt(x, y) {
@@ -294,7 +325,9 @@
       return;
     }
     if (edit && edit.slider) {
-      sliderKey(edit.slider, { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight' }[dir], 5);
+      if (!edit.ready) return;                                       // Kalibrierung läuft
+      var v = (dir === 'right' || dir === 'up') ? 1 : -1;            // sichtbare Richtung: rechts/oben = +
+      sliderKey(edit.slider, (v * edit.s > 0) ? 'ArrowRight' : 'ArrowLeft', 0);
       return;
     }
     if (edit) {
@@ -420,7 +453,7 @@
     })(document, 0);
     console.log('TVDBG dialogs: ' + out.join(' | '));
   }
-  console.log('TVDBG tv-nav v16 geladen');
+  console.log('TVDBG tv-nav v17 geladen');
   // Workaround: Der Detail-Dialog (Bottom-Sheet) erhält im Amazon-WebView die Höhe 0 und bleibt unsichtbar.
   // Dann Höhe erzwingen (Ursache vermutlich Viewport-Einheiten wie dvh/svh) und Werte protokollieren.
   function fixDialogs() {
@@ -483,7 +516,7 @@
       if (edit) { setEdit(null); return; }
       var pk = pickerOf(cur), rr = rectOf(cur), sl = sliderOf(cur);
       if (pk) setEdit({ x: rr.left + rr.width / 2, y: rr.top + rr.height / 2, picker: pk });
-      else if (sl) setEdit({ slider: sl });
+      else if (sl) { var ne = { slider: sl, ready: false, s: 1 }; setEdit(ne); calibrate(ne); }
       return;
     }
     var now = Date.now();
