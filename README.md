@@ -123,14 +123,32 @@ Oder in Android Studio öffnen und *Build → Build APK(s)*.
 
 ## Installieren
 
-Auf beiden Geräten zuerst die Entwickleroptionen aktivieren (Einstellungen → Geräteinfo → 7× auf „Build“ bzw. „Fire TV Stick“ klicken) und **ADB-Debugging** einschalten.
+Auf beiden Geräten zuerst die Entwickleroptionen aktivieren (Einstellungen → Geräteinfo → 7× auf „Build“ bzw. „Fire TV Stick“ klicken) und **ADB-Debugging** bzw. **Netzwerk-Debugging** einschalten.
 
-```bash
-adb connect <IP-der-Box>:5555
-adb install -r app/build/outputs/apk/debug/app-debug.apk
-```
+1. **APK besorgen:** aus den [Releases](../../releases) (`ha-tv-dashboard-<Version>.apk`) laden oder selbst bauen (siehe oben, `app-debug.apk`).
+2. **Verbinden und installieren:**
 
-Alternativ die APK aus den [Releases](../../releases) laden und z. B. per Downloader-App (Fire TV) oder „Send Files to TV“ übertragen und installieren.
+   ```bash
+   adb connect <IP-der-Box>:5555
+   adb install -r ha-tv-dashboard-1.0.0.apk
+   adb shell pm list packages | grep hatv     # erwartet: package:io.nachklang.hatv
+   ```
+
+3. **Optional, aber empfohlen** (einmalig pro Gerät, siehe [Hintergrund](#im-hintergrund-bereithalten) und [Zurück lang](#zurück-lang-aus-einer-anderen-app-optional)):
+
+   ```bash
+   adb shell dumpsys deviceidle whitelist +io.nachklang.hatv
+   adb shell appops set io.nachklang.hatv SYSTEM_ALERT_WINDOW allow
+   adb shell settings put secure enabled_accessibility_services io.nachklang.hatv/io.nachklang.hatv.BackKeyService
+   adb shell settings put secure accessibility_enabled 1
+   ```
+
+   Die letzten beiden Zeilen sind nur nötig, wenn ein langer Druck auf Zurück die App aus einer anderen App nach vorn holen soll (geht nicht mit CEC-Fernbedienungen).
+4. **App starten** und wie unter [Einrichtung](#einrichtung) beschrieben die Zugangsdaten eintragen. Danach zeigt die Benachrichtigungsleiste die Dauerbenachrichtigung der App, und *In den Hintergrund* im Menü schiebt sie weg und zurück.
+
+**Update:** `adb install -r` mit derselben Signatur behält die Einstellungen. Eine mit einem anderen Schlüssel signierte APK (zum Beispiel Debug-Schlüssel eines anderen Rechners) lässt sich nur nach `adb uninstall io.nachklang.hatv` installieren, dabei gehen die Einstellungen verloren.
+
+**Umstieg von Version vor 1.0.0:** Das Paket hieß früher `de.ring.hatv`. Die alte App mit `adb uninstall de.ring.hatv` entfernen und die Zugangsdaten neu eingeben.
 
 ## Technik
 
