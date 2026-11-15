@@ -286,12 +286,29 @@
     } catch (e) {}
   }
 
+  // Echte Touch-Ereignisse nachbilden: Die Aktions-Auswertung von Home Assistant (tap/hold/double_tap)
+  // startet ihren Halte-Timer bei touchstart und wertet bei touchend aus.
+  function touchEvt(type, el, x, y) {
+    try {
+      var t = new Touch({ identifier: 1, target: el, clientX: x, clientY: y, pageX: x, pageY: y,
+                          screenX: x, screenY: y, radiusX: 1, radiusY: 1, force: 1 });
+      var end = type === 'touchend';
+      var ev = new TouchEvent(type, {
+        bubbles: true, cancelable: true, composed: true, view: window,
+        touches: end ? [] : [t], targetTouches: end ? [] : [t], changedTouches: [t]
+      });
+      el.dispatchEvent(ev);
+      return ev;
+    } catch (e) { return null; }
+  }
+
   function pressDown() {
     var t = target();
     if (!t) { nav('down'); return; }
     downTarget = t;
     fire(t.el, 'pointerdown', t.x, t.y, 1);
-    fire(t.el, 'mousedown', t.x, t.y, 1);
+    t.touch = !!touchEvt('touchstart', t.el, t.x, t.y);
+    if (!t.touch) fire(t.el, 'mousedown', t.x, t.y, 1);
   }
 
   function pressUp() {
@@ -299,11 +316,19 @@
     downTarget = null;
     if (!t) return;
     var now = Date.now();
-    var detail = (lastClick.el === t.el && now - lastClick.t < 450) ? 2 : 1;   // Home Assistant erkennt Doppelklick über event.detail
+    var detail = (lastClick.el === t.el && now - lastClick.t < 450) ? 2 : 1;   // nur für Elemente ohne Touch-Auswertung
     lastClick = { t: now, el: t.el };
     fire(t.el, 'pointerup', t.x, t.y, 0);
-    fire(t.el, 'mouseup', t.x, t.y, 0);
-    fire(t.el, 'click', t.x, t.y, detail);
+    var handled = false;
+    if (t.touch) {
+      var ev = touchEvt('touchend', t.el, t.x, t.y);
+      handled = !!(ev && ev.defaultPrevented);      // Home Assistant verhindert den Folge-Klick selbst
+      if (!handled) { fire(t.el, 'mousedown', t.x, t.y, 1); }
+    }
+    if (!handled) {
+      fire(t.el, 'mouseup', t.x, t.y, 0);
+      fire(t.el, 'click', t.x, t.y, detail);
+    }
     invalidate();
     setTimeout(invalidate, 350);
   }
