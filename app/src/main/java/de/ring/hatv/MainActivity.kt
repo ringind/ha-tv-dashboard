@@ -65,7 +65,11 @@ class MainActivity : ComponentActivity() {
             val vm: AppViewModel = viewModel()
             MaterialTheme(colorScheme = darkColorScheme()) {
                 Box(Modifier.fillMaxSize().background(Background)) {
-                    App(vm, onExit = { finish() }, registerKeys = { webKeys = it })
+                    App(vm, onExit = {
+                        // Beenden: auch den Bereithalte-Dienst stoppen
+                        stopService(android.content.Intent(this@MainActivity, KeepAliveService::class.java))
+                        finishAndRemoveTask()
+                    }, registerKeys = { webKeys = it })
                 }
             }
         }

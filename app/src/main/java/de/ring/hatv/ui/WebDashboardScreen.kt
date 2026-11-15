@@ -239,6 +239,12 @@ fun WebDashboardScreen(
                 accent = accent,
                 onResume = { menuOpen = false },
                 onReload = { holder[0]?.reload(); menuOpen = false },
+                onBackground = {
+                    menuOpen = false
+                    var c: android.content.Context = ctx
+                    while (c is android.content.ContextWrapper && c !is android.app.Activity) c = c.baseContext
+                    (c as? android.app.Activity)?.moveTaskToBack(true)   // App bleibt geladen im Hintergrund
+                },
                 onSettings = onSettings,
                 onExit = onExit,
             )
@@ -300,6 +306,7 @@ private fun WebMenu(
     accent: Color,
     onResume: () -> Unit,
     onReload: () -> Unit,
+    onBackground: () -> Unit,
     onSettings: () -> Unit,
     onExit: () -> Unit,
 ) {
@@ -309,6 +316,7 @@ private fun WebMenu(
             Text("HA TV Dashboard", color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.SemiBold)
             MenuButton("Weiter", accent, first, onResume)
             MenuButton("Neu laden", accent, null, onReload)
+            MenuButton("In den Hintergrund", accent, null, onBackground)
             MenuButton("Einstellungen", accent, null, onSettings)
             MenuButton("Beenden", accent, null, onExit)
         }
