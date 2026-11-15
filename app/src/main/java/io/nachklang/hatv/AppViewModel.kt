@@ -1,4 +1,4 @@
-package de.ring.hatv
+package io.nachklang.hatv
 
 import android.app.Application
 import android.content.Context
@@ -8,14 +8,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import de.ring.hatv.data.Config
-import de.ring.hatv.data.ConnStatus
-import de.ring.hatv.data.EntityState
-import de.ring.hatv.data.HaClient
-import de.ring.hatv.data.NavEntry
-import de.ring.hatv.data.Registry
-import de.ring.hatv.data.UiAction
-import de.ring.hatv.data.toggleService
+import io.nachklang.hatv.data.Config
+import io.nachklang.hatv.data.ConnStatus
+import io.nachklang.hatv.data.EntityState
+import io.nachklang.hatv.data.HaClient
+import io.nachklang.hatv.data.NavEntry
+import io.nachklang.hatv.data.Registry
+import io.nachklang.hatv.data.UiAction
+import io.nachklang.hatv.data.toggleService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob

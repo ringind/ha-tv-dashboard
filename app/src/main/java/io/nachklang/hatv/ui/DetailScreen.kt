@@ -1,4 +1,4 @@
-package de.ring.hatv.ui
+package io.nachklang.hatv.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -39,12 +39,12 @@ import androidx.compose.ui.unit.sp
 import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
-import de.ring.hatv.data.EntityState
-import de.ring.hatv.data.UiAction
-import de.ring.hatv.data.defaultTap
-import de.ring.hatv.data.domainIcon
-import de.ring.hatv.data.fmt
-import de.ring.hatv.data.stateText
+import io.nachklang.hatv.data.EntityState
+import io.nachklang.hatv.data.UiAction
+import io.nachklang.hatv.data.defaultTap
+import io.nachklang.hatv.data.domainIcon
+import io.nachklang.hatv.data.fmt
+import io.nachklang.hatv.data.stateText
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

@@ -1,4 +1,4 @@
-package de.ring.hatv.ui
+package io.nachklang.hatv.ui
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
@@ -31,7 +31,7 @@ import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
-import de.ring.hatv.data.Config
+import io.nachklang.hatv.data.Config
 import fi.iki.elonen.NanoHTTPD
 import fi.iki.elonen.NanoHTTPD.IHTTPSession
 import fi.iki.elonen.NanoHTTPD.Method

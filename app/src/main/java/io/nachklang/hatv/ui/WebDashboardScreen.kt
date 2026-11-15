@@ -1,4 +1,4 @@
-package de.ring.hatv.ui
+package io.nachklang.hatv.ui
 
 import android.annotation.SuppressLint
 import android.net.Uri
@@ -45,7 +45,7 @@ import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
-import de.ring.hatv.data.Config
+import io.nachklang.hatv.data.Config
 import kotlinx.coroutines.delay
 import org.json.JSONObject
 

@@ -1,4 +1,4 @@
-package de.ring.hatv
+package io.nachklang.hatv
 
 import android.app.Notification
 import android.app.NotificationChannel

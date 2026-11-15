@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "de.ring.hatv"
+    namespace = "io.nachklang.hatv"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "de.ring.hatv"
+        applicationId = "io.nachklang.hatv"
         // 28 = Android 9 (Fire OS 7). Deckt Fire TV Stick 4K (Fire OS 7/8) und die waipu.tv Box (Android TV 14) ab.
         minSdk = 28
         targetSdk = 35

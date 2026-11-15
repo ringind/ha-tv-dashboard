@@ -1,4 +1,4 @@
-package de.ring.hatv.ui
+package io.nachklang.hatv.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue

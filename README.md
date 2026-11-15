@@ -47,16 +47,16 @@ Das Dashboard liegt in Home Assistant und nicht in diesem Repo.
 - Die App startet beim Öffnen einen Dienst im Vordergrund (`KeepAliveService`, Dauerbenachrichtigung mit niedrigster Wichtigkeit). Dadurch bleibt der Prozess samt geladenem Dashboard im Speicher, und die App steht nach „In den Hintergrund“ sofort bereit.
 - Beim Zurückkehren lädt die Seite nach mehr als 30 Minuten Pause neu; bei kürzerer Pause nur, wenn die Verbindung zu Home Assistant abgerissen ist.
 - *Beenden* im Menü stoppt den Dienst und schließt die App ganz.
-- Optional: `adb shell dumpsys deviceidle whitelist +de.ring.hatv` nimmt die App von der Energiesparfunktion aus.
+- Optional: `adb shell dumpsys deviceidle whitelist +io.nachklang.hatv` nimmt die App von der Energiesparfunktion aus.
 
 ### Zurück lang aus einer anderen App (optional)
 
 `BackKeyService` ist ein Bedienungshilfendienst, der nur die Zurück-Taste auswertet, wenn die App nicht im Vordergrund ist. Ein langer Druck holt die App dann nach vorn.
 
 ```bash
-adb shell settings put secure enabled_accessibility_services de.ring.hatv/de.ring.hatv.BackKeyService
+adb shell settings put secure enabled_accessibility_services io.nachklang.hatv/io.nachklang.hatv.BackKeyService
 adb shell settings put secure accessibility_enabled 1
-adb shell appops set de.ring.hatv SYSTEM_ALERT_WINDOW allow   # Erlaubnis, aus dem Hintergrund nach vorn zu holen
+adb shell appops set io.nachklang.hatv SYSTEM_ALERT_WINDOW allow   # Erlaubnis, aus dem Hintergrund nach vorn zu holen
 ```
 
 Einschränkung: Tasten, die per **HDMI-CEC** (zum Beispiel Fernbedienung eines Projektors oder Fernsehers) ankommen, schickt Android als eingespielte Ereignisse ein, und die sehen Bedienungshilfen nicht. Mit der Original-Fernbedienung der Box funktioniert es. Mit CEC-Fernbedienung bleibt das Menü (*In den Hintergrund*) oder das Starten der App über Home Assistant.

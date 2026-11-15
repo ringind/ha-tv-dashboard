@@ -1,4 +1,4 @@
-package de.ring.hatv.data
+package io.nachklang.hatv.data
 
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope

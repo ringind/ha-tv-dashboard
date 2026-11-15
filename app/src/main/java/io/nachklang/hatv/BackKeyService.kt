@@ -1,4 +1,4 @@
-package de.ring.hatv
+package io.nachklang.hatv
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo

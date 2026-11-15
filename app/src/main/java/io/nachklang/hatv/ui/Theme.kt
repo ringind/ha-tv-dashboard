@@ -1,4 +1,4 @@
-package de.ring.hatv.ui
+package io.nachklang.hatv.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.shape.RoundedCornerShape

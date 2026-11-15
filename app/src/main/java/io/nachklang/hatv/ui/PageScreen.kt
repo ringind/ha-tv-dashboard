@@ -1,4 +1,4 @@
-package de.ring.hatv.ui
+package io.nachklang.hatv.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,10 +28,10 @@ import androidx.compose.ui.unit.sp
 import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
-import de.ring.hatv.data.NavEntry
-import de.ring.hatv.data.Page
-import de.ring.hatv.data.Tile
-import de.ring.hatv.data.UiAction
+import io.nachklang.hatv.data.NavEntry
+import io.nachklang.hatv.data.Page
+import io.nachklang.hatv.data.Tile
+import io.nachklang.hatv.data.UiAction
 import kotlinx.coroutines.delay
 
 /**

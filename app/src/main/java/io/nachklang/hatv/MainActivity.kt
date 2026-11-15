@@ -1,4 +1,4 @@
-package de.ring.hatv
+package io.nachklang.hatv
 
 import android.os.Bundle
 import android.widget.Toast
@@ -32,21 +32,21 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
 import androidx.tv.material3.darkColorScheme
-import de.ring.hatv.data.ConnStatus
-import de.ring.hatv.data.PageBuilder
-import de.ring.hatv.ui.Background
-import de.ring.hatv.ui.DetailScreen
-import de.ring.hatv.ui.ErrorColor
-import de.ring.hatv.ui.TileColor
-import de.ring.hatv.ui.TileFocused
-import de.ring.hatv.ui.TileShape
-import de.ring.hatv.ui.focusBorder
-import de.ring.hatv.ui.focusScale
-import de.ring.hatv.ui.Muted
-import de.ring.hatv.ui.PageScreen
-import de.ring.hatv.ui.SetupScreen
-import de.ring.hatv.ui.WebDashboardScreen
-import de.ring.hatv.ui.parseColor
+import io.nachklang.hatv.data.ConnStatus
+import io.nachklang.hatv.data.PageBuilder
+import io.nachklang.hatv.ui.Background
+import io.nachklang.hatv.ui.DetailScreen
+import io.nachklang.hatv.ui.ErrorColor
+import io.nachklang.hatv.ui.TileColor
+import io.nachklang.hatv.ui.TileFocused
+import io.nachklang.hatv.ui.TileShape
+import io.nachklang.hatv.ui.focusBorder
+import io.nachklang.hatv.ui.focusScale
+import io.nachklang.hatv.ui.Muted
+import io.nachklang.hatv.ui.PageScreen
+import io.nachklang.hatv.ui.SetupScreen
+import io.nachklang.hatv.ui.WebDashboardScreen
+import io.nachklang.hatv.ui.parseColor
 
 class MainActivity : ComponentActivity() {
     /** Tasten-Abfang für die WebView-Ansicht (Steuerkreuz und OK gehen an das Skript in der Seite). */
