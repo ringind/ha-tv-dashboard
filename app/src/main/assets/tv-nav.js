@@ -28,6 +28,9 @@
     'pointer-events:none;box-sizing:border-box;border-radius:12px;display:none;';
   try { ov.setAttribute('popover', 'manual'); } catch (e) {}
   var raised = null;      // Dialog, über dem der Rahmen zuletzt in den Top-Layer gehoben wurde
+  function toTop() {
+    try { if (ov.matches(':popover-open')) ov.hidePopover(); ov.showPopover(); } catch (e) {}
+  }
   function raise(d) {
     // Modale <dialog>-Elemente liegen im Top-Layer und verdecken sonst jeden z-index -> Rahmen als Popover nachziehen
     if (raised === d) return;
@@ -193,8 +196,32 @@
     }
   }
 
+  var edit = null;                      // Farbwähler-Modus: { x, y, picker }
+  function setEdit(e) {
+    edit = e;
+    ov.style.border = '4px solid ' + (e ? '#4CAF50' : ACCENT);
+  }
+  function pickerOf(el) {
+    var n = el;
+    while (n) { if (n.tagName && /COLOR-PICKER|HS-COLOR/.test(n.tagName)) return n; n = parentOf(n); }
+    return null;
+  }
+  // Tippen an Koordinaten (Maus- und Touch-Ereignisse), z. B. um die Markierung im Farbwähler zu setzen
+  function tapAt(x, y) {
+    var el = deep(x, y);
+    if (!el) return;
+    fire(el, 'pointerdown', x, y, 1);
+    fire(el, 'mousedown', x, y, 1);
+    touchEvt('touchstart', el, x, y);
+    fire(el, 'pointerup', x, y, 0);
+    fire(el, 'mouseup', x, y, 0);
+    touchEvt('touchend', el, x, y);
+  }
+
   function select(el, quiet) {
     if (!el) return;
+    if (edit) setEdit(null);
+    toTop();
     cur = el;
     try {
       var br = getComputedStyle(el).borderRadius;
@@ -235,6 +262,15 @@
     var list = candidates(false);
     if (!cur || !cur.isConnected || zero(cur) || (cache.dialog && !inside(cur, cache.dialog))) {
       select(first(list));
+      return;
+    }
+    if (edit) {
+      var pr = rectOf(edit.picker), st = 10;
+      var nx = edit.x + (dir === 'right' ? st : dir === 'left' ? -st : 0);
+      var ny = edit.y + (dir === 'down' ? st : dir === 'up' ? -st : 0);
+      edit.x = Math.max(pr.left + 4, Math.min(pr.right - 4, nx));
+      edit.y = Math.max(pr.top + 4, Math.min(pr.bottom - 4, ny));
+      tapAt(edit.x, edit.y);
       return;
     }
     if (isSlider(cur) && (dir === 'left' || dir === 'right')) { slide(cur, dir); return; }
@@ -351,7 +387,7 @@
     })(document, 0);
     console.log('TVDBG dialogs: ' + out.join(' | '));
   }
-  console.log('TVDBG tv-nav v12 geladen');
+  console.log('TVDBG tv-nav v13 geladen');
   // Workaround: Der Detail-Dialog (Bottom-Sheet) erhält im Amazon-WebView die Höhe 0 und bleibt unsichtbar.
   // Dann Höhe erzwingen (Ursache vermutlich Viewport-Einheiten wie dvh/svh) und Werte protokollieren.
   function fixDialogs() {
@@ -399,6 +435,7 @@
   function pressDown() {
     var t = target();
     if (!t) { nav('down'); return; }
+    if (pickerOf(cur)) { downTarget = { picker: true }; return; }
     downTarget = t;
     fire(t.el, 'pointerdown', t.x, t.y, 1);
     t.touch = !!touchEvt('touchstart', t.el, t.x, t.y);
@@ -409,6 +446,12 @@
     var t = downTarget || target();
     downTarget = null;
     if (!t) return;
+    if (t.picker) {
+      if (edit) { setEdit(null); return; }
+      var pk = pickerOf(cur), rr = rectOf(cur);
+      if (pk) setEdit({ x: rr.left + rr.width / 2, y: rr.top + rr.height / 2, picker: pk });
+      return;
+    }
     var now = Date.now();
     var detail = (lastClick.el === t.el && now - lastClick.t < 450) ? 2 : 1;   // nur für Elemente ohne Touch-Auswertung
     lastClick = { t: now, el: t.el };
@@ -426,6 +469,8 @@
     }
     invalidate();
     setTimeout(invalidate, 350);
+    setTimeout(toTop, 200);
+    setTimeout(toTop, 700);
   }
 
   // ---------------------------------------------------------------- Seitenwechsel
