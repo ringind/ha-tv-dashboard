@@ -48,8 +48,10 @@ class BackKeyService : AccessibilityService() {
     override fun onInterrupt() {}
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
+        // Diagnose: jede Taste protokollieren, um zu sehen, ob das System überhaupt Tasten an den Dienst gibt
+        Log.i(TAG, "Taste ${KeyEvent.keyCodeToString(event.keyCode)} action=${event.action} repeat=${event.repeatCount} " +
+            "source=0x${Integer.toHexString(event.source)} device=${event.deviceId} visible=${MainActivity.visible}")
         if (event.keyCode != KeyEvent.KEYCODE_BACK) return false
-        Log.i(TAG, "BACK action=${event.action} repeat=${event.repeatCount} visible=${MainActivity.visible}")
         // Im Vordergrund bearbeitet die App den langen Druck selbst
         if (MainActivity.visible) { handler.removeCallbacks(bringToFront); fired = false; return false }
         return when (event.action) {
