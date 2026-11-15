@@ -216,7 +216,16 @@
   }
   function sliderOf(el) {
     var n = el;
-    while (n) { if (n.nodeType === 1 && isSlider(n)) return n; n = parentOf(n); }
+    while (n) {
+      if (n.nodeType === 1 && isSlider(n)) {
+        // Das role=slider-Element liegt im Shadow-DOM von <ha-control-slider>; Eigenschaften (min/max/step) hat der Host
+        var rn = n.getRootNode && n.getRootNode();
+        var h = rn && rn.host;
+        while (h && h.tagName !== 'HA-CONTROL-SLIDER') { var rn2 = h.getRootNode && h.getRootNode(); h = rn2 && rn2.host; }
+        return h || n;
+      }
+      n = parentOf(n);
+    }
     return null;
   }
   // Tasten an einen Regler senden (ha-control-slider wertet code/key aus); mehrere Schritte pro Druck
@@ -236,14 +245,15 @@
     for (var i = 0; i < n; i++) t.dispatchEvent(ev('keydown'));
     t.dispatchEvent(ev('keyup'));
   }
-  // Sichtbare Lage des Reglers (Cursor oder Balken) bestimmen, um die tatsächliche Bewegungsrichtung zu kennen
-  function sliderPos(sl) {
-    var r = sl.shadowRoot;
-    var m = r && (r.querySelector('.slider-track-cursor') || r.querySelector('[class*=cursor]') ||
-                  r.querySelector('.slider-track-bar') || r.querySelector('[class*=track-bar]') || r.querySelector('[class*=bar]'));
-    if (!m) return null;
-    var b = m.getBoundingClientRect();
-    return { x: b.left + b.width / 2, y: b.top + b.height / 2 };
+  // Mittelpunkte aller Elemente im Shadow-DOM des Reglers (zum Vergleich vorher/nachher)
+  function sliderSnap(sl) {
+    var r = sl.shadowRoot, out = [];
+    if (!r) return out;
+    r.querySelectorAll('*').forEach(function (x) {
+      var b = x.getBoundingClientRect();
+      out.push({ el: x, cx: b.left + b.width / 2, cy: b.top + b.height / 2, w: b.width, h: b.height });
+    });
+    return out;
   }
   // Kalibrierung: Einen Schritt „erhöhen" senden und messen, ob sich der Regler sichtbar nach rechts/oben bewegt.
   // Manche Regler (z. B. Farbtemperatur, Rollladenposition) laufen umgekehrt.
@@ -258,20 +268,24 @@
         ' cls=' + cls.join(' '));
     } catch (x) { console.log('TVDBG cal-fehler ' + x); }
     function trial(key, back, next) {
-      var p0 = sliderPos(sl);
-      if (!p0) { e.s = 1; e.ready = true; return; }
+      var a = sliderSnap(sl);
       sliderKey(sl, key, 0, 0.03);
       setTimeout(function () {
-        var p1 = sliderPos(sl);
-        var d = p1 ? (vert ? (p0.y - p1.y) : (p1.x - p0.x)) : 0;   // > 0: nach oben bzw. rechts
-        console.log('TVDBG cal trial key=' + key + ' p0=' + (p0 && Math.round(p0.x) + ',' + Math.round(p0.y)) + ' p1=' + (p1 && Math.round(p1.x) + ',' + Math.round(p1.y)) + ' d=' + d + ' val=' + sl.value);
-        if (Math.abs(d) >= 1) {
+        var b = sliderSnap(sl), best = null, bd = 0;
+        for (var i = 0; i < a.length && i < b.length; i++) {
+          if (a[i].el !== b[i].el) continue;
+          var dd = vert ? (a[i].cy - b[i].cy) : (b[i].cx - a[i].cx);   // > 0: nach oben bzw. rechts
+          if (Math.abs(dd) > Math.abs(bd)) { bd = dd; best = b[i].el; }
+        }
+        console.log('TVDBG cal trial key=' + key + ' d=' + Math.round(bd * 10) / 10 + ' el=' + (best ? best.localName + '.' + (best.getAttribute('class') || '') : '-') +
+          ' n=' + a.length);
+        if (Math.abs(bd) >= 1) {
           sliderKey(sl, back, 0, 0.03);                             // Testbewegung zurücknehmen
-          e.s = (key === 'ArrowRight' ? 1 : -1) * (d > 0 ? 1 : -1);
+          e.s = (key === 'ArrowRight' ? 1 : -1) * (bd > 0 ? 1 : -1);
           e.ready = true;
         } else if (next) { trial(next, 'ArrowRight', null); }
         else { e.s = 1; e.ready = true; }
-      }, 220);
+      }, 250);
     }
     trial('ArrowRight', 'ArrowLeft', 'ArrowLeft');
   }
@@ -463,7 +477,7 @@
     })(document, 0);
     console.log('TVDBG dialogs: ' + out.join(' | '));
   }
-  console.log('TVDBG tv-nav v18 geladen');
+  console.log('TVDBG tv-nav v19 geladen');
   // Workaround: Der Detail-Dialog (Bottom-Sheet) erhält im Amazon-WebView die Höhe 0 und bleibt unsichtbar.
   // Dann Höhe erzwingen (Ursache vermutlich Viewport-Einheiten wie dvh/svh) und Werte protokollieren.
   function fixDialogs() {
