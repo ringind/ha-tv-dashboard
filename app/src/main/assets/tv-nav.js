@@ -310,6 +310,9 @@
 
   // Diagnose: Zustand der Dialoge nach hass-more-info protokollieren
   function dumpDialogs() {
+    try { dumpDialogs2(); } catch (e) { console.log('TVDBG dump-fehler ' + e); }
+  }
+  function dumpDialogs2() {
     var out = [];
     (function walk(root, depth) {
       if (!root || depth > 12 || out.length > 12) return;
@@ -327,6 +330,7 @@
     })(document, 0);
     console.log('TVDBG dialogs: ' + out.join(' | '));
   }
+  console.log('TVDBG tv-nav v7 geladen');
   window.addEventListener('hass-more-info', function () { setTimeout(dumpDialogs, 300); setTimeout(dumpDialogs, 1500); }, true);
 
   function pressDown() {
