@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TV-Launcher-Banner 320x180 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+    <path android:fillColor="#FF111418" android:pathData="M0,0h320v180h-320z" />
+    <path android:fillColor="#FF03A9F4" android:pathData="M0,170h320v10h-320z" />
+    <!-- Haus -->
+    <path android:fillColor="#FF03A9F4" android:pathData="M60,95 L100,58 L140,95 L130,95 L130,128 L70,128 L70,95 Z" />
+    <path android:fillColor="#FF111418" android:pathData="M92,105h16v23h-16z" />
+    <!-- Fernseher-Rahmen -->
+    <path android:fillColor="#00000000" android:strokeColor="#FFFFFFFF" android:strokeWidth="5"
+        android:pathData="M165,62h105a8,8 0 0 1 8,8v52a8,8 0 0 1 -8,8h-105a8,8 0 0 1 -8,-8v-52a8,8 0 0 1 8,-8z" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M200,136h36v6h-36z" />
+    <!-- markierte Kachel -->
+    <path android:fillColor="#00000000" android:strokeColor="#FF03A9F4" android:strokeWidth="4"
+        android:pathData="M178,76h30v20h-30z" />
+    <path android:fillColor="#FF5A6270" android:pathData="M216,76h30v20h-30z" />
+    <path android:fillColor="#FF5A6270" android:pathData="M178,102h30v20h-30z" />
+    <path android:fillColor="#FF5A6270" android:pathData="M216,102h30v20h-30z" />
+</vector>
