@@ -314,9 +314,9 @@ private fun WebMenu(
     Box(Modifier.fillMaxSize().background(Color(0xCC000000)), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Text("HA TV Dashboard", color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.SemiBold)
-            MenuButton("Weiter", accent, first, onResume)
+            MenuButton("In den Hintergrund", accent, first, onBackground)
+            MenuButton("Weiter", accent, null, onResume)
             MenuButton("Neu laden", accent, null, onReload)
-            MenuButton("In den Hintergrund", accent, null, onBackground)
             MenuButton("Einstellungen", accent, null, onSettings)
             MenuButton("Beenden", accent, null, onExit)
         }
