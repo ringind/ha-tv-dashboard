@@ -330,7 +330,7 @@
     })(document, 0);
     console.log('TVDBG dialogs: ' + out.join(' | '));
   }
-  console.log('TVDBG tv-nav v9 geladen');
+  console.log('TVDBG tv-nav v10 geladen');
   // Workaround: Der Detail-Dialog (Bottom-Sheet) erhält im Amazon-WebView die Höhe 0 und bleibt unsichtbar.
   // Dann Höhe erzwingen (Ursache vermutlich Viewport-Einheiten wie dvh/svh) und Werte protokollieren.
   function fixDialogs() {
@@ -344,21 +344,22 @@
           var r = e.getBoundingClientRect();
           if (r.height > 5) continue;
           var cs = getComputedStyle(e);
-          console.log('TVDBG fix dialog h=' + cs.height + ' maxH=' + cs.maxHeight + ' minH=' + cs.minHeight +
+          console.log('TVDBG fix dialog vh=' + (function(){var d=document.createElement('div');d.style.cssText='position:absolute;height:100vh';document.body.appendChild(d);var h=d.getBoundingClientRect().height;d.remove();return h;})() + ' inner=' + window.innerHeight + ' h=' + cs.height + ' maxH=' + cs.maxHeight + ' minH=' + cs.minHeight +
             ' pos=' + cs.position + ' inset=' + cs.inset + ' margin=' + cs.margin + ' cls=' + e.className);
           // Inline-Styles würden von Lit beim nächsten Rendern überschrieben -> Stylesheet in den Shadow-Root einfügen
           var rn = e.getRootNode();
           if (rn && rn.appendChild && !rn.querySelector('style[data-tvfix]')) {
             var st = document.createElement('style');
             st.setAttribute('data-tvfix', '1');
+            var ih = window.innerHeight;   // vh/dvh werten in diesem WebView zu 0 aus -> Pixelwerte verwenden
             st.textContent = 'dialog.drawer, dialog[open] { top: auto !important; bottom: 0 !important; height: auto !important; ' +
-              'min-height: 50vh !important; max-height: 90vh !important; }';
+              'min-height: ' + Math.round(ih * 0.5) + 'px !important; max-height: ' + Math.round(ih * 0.9) + 'px !important; }';
             rn.appendChild(st);
           }
           e.style.setProperty('height', 'auto', 'important');
           e.style.setProperty('top', 'auto', 'important');
-          e.style.setProperty('min-height', '50vh', 'important');
-          e.style.setProperty('max-height', '90vh', 'important');
+          e.style.setProperty('min-height', Math.round(window.innerHeight * 0.5) + 'px', 'important');
+          e.style.setProperty('max-height', Math.round(window.innerHeight * 0.9) + 'px', 'important');
           var r2 = e.getBoundingClientRect();
           console.log('TVDBG fix danach rect=' + [r2.left, r2.top, r2.width, r2.height].map(Math.round).join(',') +
             ' h=' + getComputedStyle(e).height + ' tag=' + (rn.host ? rn.host.localName : '?'));

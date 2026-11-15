@@ -6,6 +6,7 @@ import android.view.KeyEvent
 import android.webkit.RenderProcessGoneDetail
 import android.webkit.ConsoleMessage
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceResponse
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
@@ -44,6 +45,9 @@ import androidx.webkit.WebViewFeature
 import de.ring.hatv.data.Config
 import kotlinx.coroutines.delay
 import org.json.JSONObject
+
+/** Custom-JS (HACS-Karten, UIX, browser_mod …) im TV-WebView nicht laden – deutlich schnellere Startzeit. */
+private const val BLOCK_CUSTOM_JS = true
 
 /**
  * Zeigt das echte Home-Assistant-Frontend in einer WebView.
@@ -130,6 +134,26 @@ fun WebDashboardScreen(
                             loading = false
                             error = null
                             view.evaluateJavascript(navScript, null)
+                        }
+
+                        // Ladezeit: Custom-Karten und -Erweiterungen (HACS, UIX, browser_mod, kiosk-mode …) werden vom
+                        // HA-Frontend global geladen, das TV-Dashboard nutzt nur Standardkarten. Diese Skripte leer beantworten.
+                        override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
+                            val u = request.url
+                            val path = u.path ?: return null
+                            val isJs = path.endsWith(".js") || path.endsWith(".mjs")
+                            val custom = path.startsWith("/local/") || path.startsWith("/uix/") ||
+                                path.startsWith("/browser_mod") || path.startsWith("/plant/") ||
+                                (path.startsWith("/hacsfiles/") && !path.contains("hass-hue-icons")) ||
+                                u.host == "cdn.jsdelivr.net"
+                            if (BLOCK_CUSTOM_JS && isJs && custom) {
+                                return WebResourceResponse(
+                                    "application/javascript", "utf-8", 200, "OK",
+                                    mapOf("Access-Control-Allow-Origin" to "*"),
+                                    java.io.ByteArrayInputStream(ByteArray(0))
+                                )
+                            }
+                            return null
                         }
 
                         override fun onReceivedError(view: WebView, request: WebResourceRequest, err: WebResourceError) {
