@@ -57,6 +57,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Prozess im Speicher halten, damit die App auf Tastendruck sofort bereitsteht
+        runCatching {
+            androidx.core.content.ContextCompat.startForegroundService(this, android.content.Intent(this, KeepAliveService::class.java))
+        }
         setContent {
             val vm: AppViewModel = viewModel()
             MaterialTheme(colorScheme = darkColorScheme()) {

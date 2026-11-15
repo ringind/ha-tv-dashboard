@@ -37,6 +37,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
@@ -84,6 +87,39 @@ fun WebDashboardScreen(
             wv != null && wv.canGoBack() -> wv.goBack()
             else -> menuOpen = true
         }
+    }
+
+    // Zurück aus dem Hintergrund: nur bei längerer Pause (30 Minuten) oder abgerissener Verbindung neu laden
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        var stoppedAt = 0L
+        val observer = LifecycleEventObserver { _, ev ->
+            val wv = holder[0] ?: return@LifecycleEventObserver
+            when (ev) {
+                Lifecycle.Event.ON_STOP -> { stoppedAt = System.currentTimeMillis(); wv.onPause() }
+                Lifecycle.Event.ON_START -> {
+                    wv.onResume()
+                    val was = stoppedAt
+                    stoppedAt = 0L
+                    if (was > 0) {
+                        if (System.currentTimeMillis() - was > 30 * 60 * 1000L) {
+                            wv.reload()
+                        } else {
+                            // Home Assistant verbindet sich selbst neu; falls das nach 4 s nicht geklappt hat, Seite neu laden
+                            wv.postDelayed({
+                                wv.evaluateJavascript(
+                                    "(function(){var h=document.querySelector('home-assistant');" +
+                                        "return !!(h&&h.hass&&h.hass.connection&&h.hass.connection.connected);})()"
+                                ) { r -> if (r != "true") wv.reload() }
+                            }, 4000)
+                        }
+                    }
+                }
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     DisposableEffect(menuOpen) {
