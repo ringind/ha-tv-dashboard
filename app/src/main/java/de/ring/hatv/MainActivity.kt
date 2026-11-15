@@ -52,6 +52,15 @@ class MainActivity : ComponentActivity() {
     /** Tasten-Abfang für die WebView-Ansicht (Steuerkreuz und OK gehen an das Skript in der Seite). */
     private var webKeys: ((android.view.KeyEvent) -> Boolean)? = null
 
+    /** Langer Druck auf Zurück: App in den Hintergrund schieben (geladen im Speicher). Kurzer Druck bleibt „eine Ebene zurück". */
+    override fun onKeyLongPress(keyCode: Int, event: android.view.KeyEvent): Boolean {
+        if (keyCode == android.view.KeyEvent.KEYCODE_BACK) {
+            moveTaskToBack(true)
+            return true
+        }
+        return super.onKeyLongPress(keyCode, event)
+    }
+
     override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean =
         webKeys?.invoke(event) == true || super.dispatchKeyEvent(event)
 
