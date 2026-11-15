@@ -249,6 +249,14 @@
   // Manche Regler (z. B. Farbtemperatur, Rollladenposition) laufen umgekehrt.
   function calibrate(e) {
     var sl = e.slider, vert = rectOf(sl).height > rectOf(sl).width;
+    try {
+      var cls = [];
+      if (sl.shadowRoot) sl.shadowRoot.querySelectorAll('*').forEach(function (x) { cls.push(x.localName + '.' + (x.getAttribute('class') || '')); });
+      var rr = rectOf(sl);
+      console.log('TVDBG cal start tag=' + sl.localName + ' vert=' + vert + ' rect=' + [rr.left, rr.top, rr.width, rr.height].map(Math.round).join(',') +
+        ' min=' + sl.min + ' max=' + sl.max + ' step=' + sl.step + ' val=' + sl.value + ' rev=' + sl.reversed + ' inv=' + sl.inverted + ' mode=' + sl.mode +
+        ' cls=' + cls.join(' '));
+    } catch (x) { console.log('TVDBG cal-fehler ' + x); }
     function trial(key, back, next) {
       var p0 = sliderPos(sl);
       if (!p0) { e.s = 1; e.ready = true; return; }
@@ -256,6 +264,7 @@
       setTimeout(function () {
         var p1 = sliderPos(sl);
         var d = p1 ? (vert ? (p0.y - p1.y) : (p1.x - p0.x)) : 0;   // > 0: nach oben bzw. rechts
+        console.log('TVDBG cal trial key=' + key + ' p0=' + (p0 && Math.round(p0.x) + ',' + Math.round(p0.y)) + ' p1=' + (p1 && Math.round(p1.x) + ',' + Math.round(p1.y)) + ' d=' + d + ' val=' + sl.value);
         if (Math.abs(d) >= 1) {
           sliderKey(sl, back, 0, 0.03);                             // Testbewegung zurücknehmen
           e.s = (key === 'ArrowRight' ? 1 : -1) * (d > 0 ? 1 : -1);
@@ -327,6 +336,7 @@
     if (edit && edit.slider) {
       if (!edit.ready) return;                                       // Kalibrierung läuft
       var v = (dir === 'right' || dir === 'up') ? 1 : -1;            // sichtbare Richtung: rechts/oben = +
+      console.log('TVDBG slider dir=' + dir + ' s=' + edit.s + ' tag=' + edit.slider.localName + ' val=' + edit.slider.value);
       sliderKey(edit.slider, (v * edit.s > 0) ? 'ArrowRight' : 'ArrowLeft', 0);
       return;
     }
@@ -453,7 +463,7 @@
     })(document, 0);
     console.log('TVDBG dialogs: ' + out.join(' | '));
   }
-  console.log('TVDBG tv-nav v17 geladen');
+  console.log('TVDBG tv-nav v18 geladen');
   // Workaround: Der Detail-Dialog (Bottom-Sheet) erhält im Amazon-WebView die Höhe 0 und bleibt unsichtbar.
   // Dann Höhe erzwingen (Ursache vermutlich Viewport-Einheiten wie dvh/svh) und Werte protokollieren.
   function fixDialogs() {
