@@ -302,6 +302,12 @@
     } catch (e) { return null; }
   }
 
+  ['hass-more-info', 'show-dialog', 'dialog-closed', 'hass-action'].forEach(function (n) {
+    window.addEventListener(n, function (e) { console.log('TVDBG event ' + n + ' ' + JSON.stringify(e.detail || {}).slice(0, 200)); }, true);
+  });
+  window.addEventListener('error', function (e) { console.log('TVDBG error ' + e.message); });
+  window.addEventListener('unhandledrejection', function (e) { console.log('TVDBG reject ' + e.reason); });
+
   function pressDown() {
     var t = target();
     if (!t) { nav('down'); return; }
@@ -322,7 +328,8 @@
     var handled = false;
     if (t.touch) {
       var ev = touchEvt('touchend', t.el, t.x, t.y);
-      handled = !!(ev && ev.defaultPrevented);      // Home Assistant verhindert den Folge-Klick selbst
+      handled = !!(ev && ev.defaultPrevented);
+      console.log('TVDBG touchend handled=' + handled + ' el=' + (t.el.localName || '?'));      // Home Assistant verhindert den Folge-Klick selbst
       if (!handled) { fire(t.el, 'mousedown', t.x, t.y, 1); }
     }
     if (!handled) {
