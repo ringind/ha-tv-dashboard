@@ -1,6 +1,7 @@
 package de.ring.hatv
 
 import android.accessibilityservice.AccessibilityService
+import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Intent
 import android.os.Handler
 import android.os.Looper
@@ -30,10 +31,20 @@ class BackKeyService : AccessibilityService() {
 
     override fun onServiceConnected() {
         super.onServiceConnected()
-        Log.i(TAG, "Dienst verbunden")
+        // Tasten-Filter zusätzlich zur XML-Konfiguration explizit anfordern (manche Geräte werten nur das aus)
+        runCatching {
+            val info = serviceInfo ?: AccessibilityServiceInfo()
+            info.flags = info.flags or AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS
+            info.eventTypes = info.eventTypes or AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+            serviceInfo = info
+        }.onFailure { Log.w(TAG, "serviceInfo setzen fehlgeschlagen: $it") }
+        val i = serviceInfo
+        Log.i(TAG, "Dienst verbunden flags=0x${Integer.toHexString(i?.flags ?: -1)} caps=0x${Integer.toHexString(i?.capabilities ?: -1)}")
     }
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) {}
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) Log.i(TAG, "Fenster: ${event.packageName}")
+    }
     override fun onInterrupt() {}
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
