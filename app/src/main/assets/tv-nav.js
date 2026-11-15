@@ -206,6 +206,22 @@
     while (n) { if (n.tagName && /COLOR-PICKER|HS-COLOR/.test(n.tagName)) return n; n = parentOf(n); }
     return null;
   }
+  function sliderOf(el) {
+    var n = el;
+    while (n) { if (n.nodeType === 1 && isSlider(n)) return n; n = parentOf(n); }
+    return null;
+  }
+  // Tasten an einen Regler senden (ha-control-slider wertet code/key aus); mehrere Schritte pro Druck
+  function sliderKey(sl, key, n) {
+    var t = (sl.shadowRoot && sl.shadowRoot.querySelector('[role=slider]')) || sl;
+    try { t.focus && t.focus({ preventScroll: true }); } catch (e) {}
+    var kc = { ArrowUp: 38, ArrowDown: 40, ArrowLeft: 37, ArrowRight: 39 }[key];
+    function ev(type) {
+      return new KeyboardEvent(type, { key: key, code: key, keyCode: kc, which: kc, bubbles: true, composed: true, cancelable: true });
+    }
+    for (var i = 0; i < n; i++) t.dispatchEvent(ev('keydown'));
+    t.dispatchEvent(ev('keyup'));
+  }
   // Tippen an Koordinaten (Maus- und Touch-Ereignisse), z. B. um die Markierung im Farbwähler zu setzen
   function tapAt(x, y) {
     var el = deep(x, y);
@@ -262,6 +278,10 @@
     var list = candidates(false);
     if (!cur || !cur.isConnected || zero(cur) || (cache.dialog && !inside(cur, cache.dialog))) {
       select(first(list));
+      return;
+    }
+    if (edit && edit.slider) {
+      sliderKey(edit.slider, { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight' }[dir], 5);
       return;
     }
     if (edit) {
@@ -387,7 +407,7 @@
     })(document, 0);
     console.log('TVDBG dialogs: ' + out.join(' | '));
   }
-  console.log('TVDBG tv-nav v13 geladen');
+  console.log('TVDBG tv-nav v14 geladen');
   // Workaround: Der Detail-Dialog (Bottom-Sheet) erhält im Amazon-WebView die Höhe 0 und bleibt unsichtbar.
   // Dann Höhe erzwingen (Ursache vermutlich Viewport-Einheiten wie dvh/svh) und Werte protokollieren.
   function fixDialogs() {
@@ -435,7 +455,7 @@
   function pressDown() {
     var t = target();
     if (!t) { nav('down'); return; }
-    if (pickerOf(cur)) { downTarget = { picker: true }; return; }
+    if (pickerOf(cur) || sliderOf(cur)) { downTarget = { picker: true }; return; }
     downTarget = t;
     fire(t.el, 'pointerdown', t.x, t.y, 1);
     t.touch = !!touchEvt('touchstart', t.el, t.x, t.y);
@@ -448,8 +468,9 @@
     if (!t) return;
     if (t.picker) {
       if (edit) { setEdit(null); return; }
-      var pk = pickerOf(cur), rr = rectOf(cur);
+      var pk = pickerOf(cur), rr = rectOf(cur), sl = sliderOf(cur);
       if (pk) setEdit({ x: rr.left + rr.width / 2, y: rr.top + rr.height / 2, picker: pk });
+      else if (sl) setEdit({ slider: sl });
       return;
     }
     var now = Date.now();
