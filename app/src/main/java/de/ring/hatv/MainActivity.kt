@@ -19,12 +19,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.MaterialTheme
+import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
 import androidx.tv.material3.darkColorScheme
 import de.ring.hatv.data.ConnStatus
@@ -32,6 +37,11 @@ import de.ring.hatv.data.PageBuilder
 import de.ring.hatv.ui.Background
 import de.ring.hatv.ui.DetailScreen
 import de.ring.hatv.ui.ErrorColor
+import de.ring.hatv.ui.TileColor
+import de.ring.hatv.ui.TileFocused
+import de.ring.hatv.ui.TileShape
+import de.ring.hatv.ui.focusBorder
+import de.ring.hatv.ui.focusScale
 import de.ring.hatv.ui.Muted
 import de.ring.hatv.ui.PageScreen
 import de.ring.hatv.ui.SetupScreen
@@ -115,6 +125,27 @@ private fun Dashboard(vm: AppViewModel, accent: androidx.compose.ui.graphics.Col
                 )
                 cfg?.url?.let { Text(it, color = Muted, fontSize = 15.sp, modifier = Modifier.padding(top = 10.dp)) }
                 err?.let { Text(it, color = ErrorColor, fontSize = 16.sp, modifier = Modifier.padding(top = 10.dp)) }
+
+                // Ohne Verbindung muss die Adresse trotzdem änderbar sein (z. B. IP statt .local-Name)
+                val settingsFocus = remember { FocusRequester() }
+                Surface(
+                    onClick = { vm.showSetup = true },
+                    modifier = Modifier.padding(top = 32.dp).focusRequester(settingsFocus),
+                    shape = ClickableSurfaceDefaults.shape(TileShape),
+                    colors = ClickableSurfaceDefaults.colors(
+                        containerColor = TileColor, focusedContainerColor = TileFocused,
+                        contentColor = Color.White, focusedContentColor = Color.White,
+                    ),
+                    border = focusBorder(accent),
+                    scale = focusScale(),
+                ) {
+                    Text("Adresse / Token ändern", fontSize = 18.sp,
+                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp))
+                }
+                LaunchedEffect(Unit) {
+                    kotlinx.coroutines.delay(150)
+                    runCatching { settingsFocus.requestFocus() }
+                }
             }
         }
         return

@@ -142,7 +142,13 @@ private class SetupServer(
             runCatching { session.parseBody(HashMap()) }
             @Suppress("DEPRECATION")
             val p = session.parms
-            val url = p["url"]?.trim().orEmpty()
+            var url = p["url"]?.trim().orEmpty()
+            // Schema und Port ergänzen, damit "192.168.178.20" reicht
+            if (url.isNotEmpty() && !url.contains("://")) url = "http://$url"
+            val hostPart = url.substringAfter("://").substringBefore('/')
+            if (url.startsWith("http://") && hostPart.isNotEmpty() && !hostPart.contains(':')) {
+                url = url.replaceFirst(hostPart, "$hostPart:8123")
+            }
             val token = p["token"]?.trim().orEmpty().ifEmpty { current?.token.orEmpty() }
             val accent = p["accent"]?.trim().orEmpty().ifEmpty { "#03A9F4" }
             return if (url.startsWith("http") && token.isNotEmpty()) {
@@ -156,7 +162,9 @@ private class SetupServer(
                 html("<h2>⚠️ Unvollständig</h2><p>Adresse (http/https) und Token werden benötigt.</p><p><a href='/'>Zurück</a></p>")
             }
         }
-        val u = esc(current?.url ?: "http://homeassistant.local:8123")
+        // .local-Namen kann Android TV oft nicht auflösen -> nicht vorbelegen
+        val curUrl = current?.url?.takeUnless { it.substringAfter("://").substringBefore(':').endsWith(".local") }
+        val u = esc(curUrl ?: "")
         val a = esc(current?.accent ?: "#03A9F4")
         val tokenHint = if (current != null) "leer lassen = bisherigen Token behalten" else ""
         return html(
@@ -164,7 +172,8 @@ private class SetupServer(
             <h2>HA TV Dashboard</h2>
             <form method="post">
               <label>Home-Assistant-Adresse</label>
-              <input name="url" value="$u" autocapitalize="off" autocorrect="off">
+              <input name="url" value="$u" placeholder="192.168.178.20" autocapitalize="off" autocorrect="off" inputmode="url">
+              <small style="color:#9aa3ad">IP-Adresse von Home Assistant empfohlen. Schema (http://) und Port (:8123) werden bei Bedarf ergänzt.</small>
               <label>Long-Lived Access Token</label>
               <textarea name="token" rows="5" placeholder="$tokenHint"></textarea>
               <label>Rahmenfarbe der aktiven Karte</label>
