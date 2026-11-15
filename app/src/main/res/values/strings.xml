@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">HA TV Dashboard</string>
+    <string name="accessibility_description">Holt die App per langem Druck auf Zurück aus dem Hintergrund nach vorn. Es werden nur Zurück-Tasten ausgewertet, keine Bildschirminhalte gelesen.</string>
 </resources>

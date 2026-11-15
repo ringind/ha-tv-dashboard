@@ -7,6 +7,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Erlaubt dem Bedienungshilfendienst, die App aus dem Hintergrund nach vorn zu holen (per adb freigeben) -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <!-- TV-App, die trotzdem auf Geräten ohne Leanback/Touch installierbar bleibt -->
     <uses-feature android:name="android.software.leanback" android:required="false" />
@@ -40,6 +42,19 @@
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Haelt das geladene Home-Assistant-Dashboard im Speicher, damit die App sofort bereitsteht" />
+        </service>
+
+        <service
+            android:name=".BackKeyService"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_config" />
         </service>
     </application>
 </manifest>

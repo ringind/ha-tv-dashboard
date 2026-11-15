@@ -50,6 +50,14 @@ import de.ring.hatv.ui.parseColor
 
 class MainActivity : ComponentActivity() {
     /** Tasten-Abfang für die WebView-Ansicht (Steuerkreuz und OK gehen an das Skript in der Seite). */
+    companion object {
+        /** true, solange die App sichtbar ist (vom Bedienungshilfendienst abgefragt). */
+        @Volatile var visible = false
+    }
+
+    override fun onStart() { super.onStart(); visible = true }
+    override fun onStop() { visible = false; super.onStop() }
+
     private var webKeys: ((android.view.KeyEvent) -> Boolean)? = null
 
     /** Langer Druck auf Zurück: App in den Hintergrund schieben (geladen im Speicher). Kurzer Druck bleibt „eine Ebene zurück". */
