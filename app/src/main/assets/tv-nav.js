@@ -23,8 +23,17 @@
   // ---------------------------------------------------------------- Rahmen
   var ov = document.createElement('div');
   ov.id = '__tv_focus';
-  ov.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;z-index:2147483647;' +
+  ov.style.cssText = 'position:fixed;left:0;top:0;right:auto;bottom:auto;width:0;height:0;z-index:2147483647;' +
+    'margin:0;padding:0;background:transparent;overflow:visible;color:inherit;' +
     'pointer-events:none;box-sizing:border-box;border-radius:12px;display:none;';
+  try { ov.setAttribute('popover', 'manual'); } catch (e) {}
+  var raised = null;      // Dialog, über dem der Rahmen zuletzt in den Top-Layer gehoben wurde
+  function raise(d) {
+    // Modale <dialog>-Elemente liegen im Top-Layer und verdecken sonst jeden z-index -> Rahmen als Popover nachziehen
+    if (raised === d) return;
+    raised = d;
+    try { if (ov.matches(':popover-open')) ov.hidePopover(); ov.showPopover(); } catch (e) {}
+  }
   function paint() {
     ov.style.border = '4px solid ' + ACCENT;
     ov.style.boxShadow = '0 0 0 2px rgba(0,0,0,.5), 0 0 22px ' + ACCENT;
@@ -38,6 +47,7 @@
     var r = cur.getBoundingClientRect();
     if (r.width < 2 || r.height < 2) { ov.style.display = 'none'; return; }
     ov.style.display = 'block';
+    raise(cache.dialog || 1);
     ov.style.left = (r.left - 4) + 'px';
     ov.style.top = (r.top - 4) + 'px';
     ov.style.width = (r.width + 8) + 'px';
@@ -330,7 +340,7 @@
     })(document, 0);
     console.log('TVDBG dialogs: ' + out.join(' | '));
   }
-  console.log('TVDBG tv-nav v10 geladen');
+  console.log('TVDBG tv-nav v11 geladen');
   // Workaround: Der Detail-Dialog (Bottom-Sheet) erhält im Amazon-WebView die Höhe 0 und bleibt unsichtbar.
   // Dann Höhe erzwingen (Ursache vermutlich Viewport-Einheiten wie dvh/svh) und Werte protokollieren.
   function fixDialogs() {
@@ -353,13 +363,15 @@
             st.setAttribute('data-tvfix', '1');
             var ih = window.innerHeight;   // vh/dvh werten in diesem WebView zu 0 aus -> Pixelwerte verwenden
             st.textContent = 'dialog.drawer, dialog[open] { top: auto !important; bottom: 0 !important; height: auto !important; ' +
-              'min-height: ' + Math.round(ih * 0.5) + 'px !important; max-height: ' + Math.round(ih * 0.9) + 'px !important; }';
+              'zoom: 0.7 !important; min-height: ' + Math.round(ih * 0.55 / 0.7) + 'px !important; ' +
+              'max-height: ' + Math.round(ih * 0.95 / 0.7) + 'px !important; }';
             rn.appendChild(st);
           }
           e.style.setProperty('height', 'auto', 'important');
           e.style.setProperty('top', 'auto', 'important');
-          e.style.setProperty('min-height', Math.round(window.innerHeight * 0.5) + 'px', 'important');
-          e.style.setProperty('max-height', Math.round(window.innerHeight * 0.9) + 'px', 'important');
+          e.style.setProperty('zoom', '0.7', 'important');
+          e.style.setProperty('min-height', Math.round(window.innerHeight * 0.55 / 0.7) + 'px', 'important');
+          e.style.setProperty('max-height', Math.round(window.innerHeight * 0.95 / 0.7) + 'px', 'important');
           var r2 = e.getBoundingClientRect();
           console.log('TVDBG fix danach rect=' + [r2.left, r2.top, r2.width, r2.height].map(Math.round).join(',') +
             ' h=' + getComputedStyle(e).height + ' tag=' + (rn.host ? rn.host.localName : '?'));
