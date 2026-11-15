@@ -219,6 +219,11 @@
     function ev(type) {
       return new KeyboardEvent(type, { key: key, code: key, keyCode: kc, which: kc, bubbles: true, composed: true, cancelable: true });
     }
+    // Schrittzahl so wählen, dass ein Druck etwa 5 % des Wertebereichs bewegt (z. B. Kelvin-Regler: 2000–6500, Schritt 1)
+    var mn = parseFloat(sl.min !== undefined ? sl.min : t.getAttribute('aria-valuemin'));
+    var mx = parseFloat(sl.max !== undefined ? sl.max : t.getAttribute('aria-valuemax'));
+    var stp = parseFloat(sl.step) || 1;
+    if (isFinite(mn) && isFinite(mx) && mx > mn) n = Math.max(1, Math.min(400, Math.round((mx - mn) * 0.05 / stp)));
     for (var i = 0; i < n; i++) t.dispatchEvent(ev('keydown'));
     t.dispatchEvent(ev('keyup'));
   }
@@ -407,7 +412,7 @@
     })(document, 0);
     console.log('TVDBG dialogs: ' + out.join(' | '));
   }
-  console.log('TVDBG tv-nav v14 geladen');
+  console.log('TVDBG tv-nav v15 geladen');
   // Workaround: Der Detail-Dialog (Bottom-Sheet) erhält im Amazon-WebView die Höhe 0 und bleibt unsichtbar.
   // Dann Höhe erzwingen (Ursache vermutlich Viewport-Einheiten wie dvh/svh) und Werte protokollieren.
   function fixDialogs() {
