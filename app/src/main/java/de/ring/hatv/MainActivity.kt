@@ -45,16 +45,23 @@ import de.ring.hatv.ui.focusScale
 import de.ring.hatv.ui.Muted
 import de.ring.hatv.ui.PageScreen
 import de.ring.hatv.ui.SetupScreen
+import de.ring.hatv.ui.WebDashboardScreen
 import de.ring.hatv.ui.parseColor
 
 class MainActivity : ComponentActivity() {
+    /** Tasten-Abfang für die WebView-Ansicht (Steuerkreuz und OK gehen an das Skript in der Seite). */
+    private var webKeys: ((android.view.KeyEvent) -> Boolean)? = null
+
+    override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean =
+        webKeys?.invoke(event) == true || super.dispatchKeyEvent(event)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             val vm: AppViewModel = viewModel()
             MaterialTheme(colorScheme = darkColorScheme()) {
                 Box(Modifier.fillMaxSize().background(Background)) {
-                    App(vm, onExit = { finish() })
+                    App(vm, onExit = { finish() }, registerKeys = { webKeys = it })
                 }
             }
         }
@@ -62,7 +69,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun App(vm: AppViewModel, onExit: () -> Unit) {
+fun App(vm: AppViewModel, onExit: () -> Unit, registerKeys: (((android.view.KeyEvent) -> Boolean)?) -> Unit) {
     val ctx = LocalContext.current
     val cfg by vm.config.collectAsStateWithLifecycle()
     val status by vm.status.collectAsStateWithLifecycle()
@@ -72,13 +79,14 @@ fun App(vm: AppViewModel, onExit: () -> Unit) {
         vm.messages.collect { Toast.makeText(ctx, it, Toast.LENGTH_SHORT).show() }
     }
 
-    val needsSetup = cfg == null || status == ConnStatus.AuthFailed || vm.showSetup
+    val authFailed = cfg?.mode == "native" && status == ConnStatus.AuthFailed
+    val needsSetup = cfg == null || authFailed || vm.showSetup
     if (needsSetup) {
-        val canCancel = cfg != null && status != ConnStatus.AuthFailed
+        val canCancel = cfg != null && !authFailed
         BackHandler(enabled = canCancel) { vm.showSetup = false }
         SetupScreen(
             current = cfg,
-            authFailed = status == ConnStatus.AuthFailed,
+            authFailed = authFailed,
             accent = accent,
             onSave = vm::saveConfig,
             onCancel = if (canCancel) ({ vm.showSetup = false }) else null,
@@ -86,6 +94,19 @@ fun App(vm: AppViewModel, onExit: () -> Unit) {
         return
     }
 
+    val c = cfg ?: return
+    if (c.mode == "web") {
+        key(c) {
+            WebDashboardScreen(
+                cfg = c,
+                accent = accent,
+                onSettings = { vm.showSetup = true },
+                onExit = onExit,
+                registerKeys = registerKeys,
+            )
+        }
+        return
+    }
     Dashboard(vm, accent, status, onExit)
 }
 

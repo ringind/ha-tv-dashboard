@@ -151,8 +151,11 @@ private class SetupServer(
             }
             val token = p["token"]?.trim().orEmpty().ifEmpty { current?.token.orEmpty() }
             val accent = p["accent"]?.trim().orEmpty().ifEmpty { "#03A9F4" }
+            val mode = if (p["mode"] == "native") "native" else "web"
+            val start = p["start"]?.trim().orEmpty().trimStart('/')
+            val zoom = p["zoom"]?.trim()?.toIntOrNull()?.coerceIn(50, 300) ?: 100
             return if (url.startsWith("http") && token.isNotEmpty()) {
-                onSave(Config(url.trimEnd('/'), token, accent))
+                onSave(Config(url.trimEnd('/'), token, accent, mode, start, zoom))
                 val host = url.substringAfter("://").substringBefore('/').substringBefore(':')
                 val hint = if (host.endsWith(".local"))
                     "<p>⚠️ Android TV kann <b>.local</b>-Namen oft nicht auflösen. Falls die Verbindung scheitert, bitte die IP-Adresse von Home Assistant verwenden (z. B. http://192.168.178.x:8123).</p>"
@@ -166,6 +169,9 @@ private class SetupServer(
         val curUrl = current?.url?.takeUnless { it.substringAfter("://").substringBefore(':').endsWith(".local") }
         val u = esc(curUrl ?: "")
         val a = esc(current?.accent ?: "#03A9F4")
+        val curMode = current?.mode ?: "web"
+        val s = esc(current?.start ?: "")
+        val z = current?.zoom ?: 100
         val tokenHint = if (current != null) "leer lassen = bisherigen Token behalten" else ""
         return html(
             """
@@ -176,6 +182,15 @@ private class SetupServer(
               <small style="color:#9aa3ad">IP-Adresse von Home Assistant empfohlen. Schema (http://) und Port (:8123) werden bei Bedarf ergänzt.</small>
               <label>Long-Lived Access Token</label>
               <textarea name="token" rows="5" placeholder="$tokenHint"></textarea>
+              <label>Ansicht</label>
+              <select name="mode">
+                <option value="web" ${if (curMode == "web") "selected" else ""}>Home-Assistant-Oberfläche (wie im Browser)</option>
+                <option value="native" ${if (curMode == "native") "selected" else ""}>Einfache Kacheln (nativ)</option>
+              </select>
+              <label>Startseite (optional)</label>
+              <input name="start" value="$s" placeholder="z. B. dashboard-astrion/home" autocapitalize="off" autocorrect="off">
+              <label>Zoom in % (nur Home-Assistant-Oberfläche)</label>
+              <input name="zoom" type="number" value="$z" min="50" max="300">
               <label>Rahmenfarbe der aktiven Karte</label>
               <input name="accent" type="color" value="$a">
               <button type="submit">Speichern</button>
@@ -193,7 +208,7 @@ private class SetupServer(
         <style>
           body{font-family:system-ui,sans-serif;background:#111418;color:#eee;padding:20px;max-width:560px;margin:auto}
           label{display:block;margin:18px 0 6px;color:#9aa3ad}
-          input,textarea{width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1px solid #39414b;background:#1f242b;color:#fff;font-size:16px}
+          input,textarea,select{width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1px solid #39414b;background:#1f242b;color:#fff;font-size:16px}
           input[type=color]{height:52px;padding:4px}
           button{margin-top:24px;width:100%;padding:14px;border:0;border-radius:10px;background:#03a9f4;color:#fff;font-size:18px}
           a{color:#03a9f4}

@@ -4,6 +4,17 @@ Android-TV-App, die das **Standard-Dashboard von Home Assistant** mit der Fernbe
 
 Läuft auf der **waipu.tv Box** (Android TV 14) und dem **Fire TV Stick 4K** (Fire OS 7/8). Nicht auf Geräten mit Vega OS.
 
+## Ansichten
+
+Die App hat zwei Ansichten (Einstellung per QR-Code am Handy):
+
+- **Home-Assistant-Oberfläche (Standard):** zeigt das echte HA-Frontend in einer WebView, also dasselbe Aussehen wie im Browser oder in der Companion-App, inklusive Theme und Custom-Karten. Ein eingeschleustes Skript (`app/src/main/assets/tv-nav.js`) übernimmt die Bedienung: Steuerkreuz springt räumlich zwischen bedienbaren Elementen, die aktive Karte bekommt einen Rahmen, OK sendet einen Mausklick. Kurz, lang und doppelt werten die Karten von Home Assistant selbst aus (`tap_action`, `hold_action`, `double_tap_action`). Bei offenem Dialog wird nur darin navigiert, links/rechts stellt Schieberegler ein. Anmeldung ohne Eingabe über den Long-Lived Token.
+  *Zurück:* eine Seite zurück (Dialoge schließen sich); auf der obersten Ebene öffnet sich ein Menü (Neu laden, Einstellungen, Beenden). Die Menü-Taste der Fernbedienung öffnet es direkt.
+  Einstellbar: Startseite (z. B. `dashboard-astrion/home`, leer = Standard-Dashboard) und Zoom.
+- **Einfache Kacheln (nativ):** eigene, vereinfachte Darstellung (siehe unten), unabhängig vom HA-Frontend.
+
+Die Beschreibung der Tasten unten gilt für die native Ansicht. In der Web-Ansicht gelten die in HA konfigurierten Aktionen der Karten.
+
 ## Bedienung
 
 | Taste | Funktion |

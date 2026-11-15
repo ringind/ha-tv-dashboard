@@ -48,7 +48,17 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     private var clientJob: Job? = null
 
     init {
-        config.value?.let { connect(it) }
+        config.value?.takeIf { it.mode == "native" }?.let { connect(it) }
+    }
+
+    private fun disconnect() {
+        clientJob?.cancel()
+        client?.close()
+        client = null
+        status.value = ConnStatus.Disconnected
+        registry.value = null
+        lovelace.value = null
+        lastError.value = null
     }
 
     // ---------------- Konfiguration ----------------
@@ -56,7 +66,13 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     private fun loadConfig(): Config? {
         val url = prefs.getString("url", null) ?: return null
         val token = prefs.getString("token", null) ?: return null
-        return Config(url, token, prefs.getString("accent", null) ?: "#03A9F4")
+        return Config(
+            url, token,
+            prefs.getString("accent", null) ?: "#03A9F4",
+            prefs.getString("mode", null) ?: "web",
+            prefs.getString("start", null) ?: "",
+            prefs.getInt("zoom", 100),
+        )
     }
 
     /** Wird vom Einrichtungs-Webserver (eigener Thread) aufgerufen. */
@@ -65,13 +81,19 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             .putString("url", c.url)
             .putString("token", c.token)
             .putString("accent", c.accent)
+            .putString("mode", c.mode)
+            .putString("start", c.start)
+            .putInt("zoom", c.zoom)
             .apply()
         viewModelScope.launch {
             val old = config.value
             config.value = c
             showSetup = false
-            if (old == null || old.url != c.url || old.token != c.token || status.value != ConnStatus.Connected) {
-                connect(c)
+            if (c.mode == "native") {
+                if (old == null || old.mode != "native" || old.url != c.url || old.token != c.token ||
+                    status.value != ConnStatus.Connected) connect(c)
+            } else {
+                disconnect()   // die WebView verbindet sich selbst
             }
         }
     }

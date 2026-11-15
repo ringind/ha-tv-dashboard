@@ -144,6 +144,18 @@ class NavEntry(val pageId: String) {
     var focusKey: String? = null
 }
 
-data class Config(val url: String, val token: String, val accent: String = "#03A9F4")
+/**
+ * mode:  "web" = echtes HA-Frontend in einer WebView, "native" = vereinfachte eigene Kacheln
+ * start: Startpfad in HA, z. B. "dashboard-astrion/home"; leer = Standard-Dashboard
+ * zoom:  Seitenzoom der WebView in Prozent
+ */
+data class Config(
+    val url: String,
+    val token: String,
+    val accent: String = "#03A9F4",
+    val mode: String = "web",
+    val start: String = "",
+    val zoom: Int = 100,
+)
 
 internal fun JsonElement?.asObj(): JsonObject? = runCatching { this?.jsonObject }.getOrNull()
