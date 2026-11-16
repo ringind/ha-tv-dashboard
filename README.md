@@ -204,6 +204,10 @@ The app is bilingual: **English** (default) and **German**. It follows the syste
 
 The texts live in `app/src/main/res/values/strings.xml` (English) and `app/src/main/res/values-de/strings.xml` (German). To add a language, create a folder `values-<language code>` with the same file and add the code to `res/xml/locales_config.xml`. Code without a Context loads texts via `Res.s(R.string.…)` (`App.kt`). The Home Assistant interface itself follows the language of the HA user.
 
+## License
+
+Licensed under the [Apache License 2.0](LICENSE). Third-party components and their licenses are listed in [NOTICE](NOTICE). Home Assistant is a trademark of the Open Home Foundation; this project is not affiliated with it.
+
 ## Technical notes
 
 - Kotlin, Jetpack Compose for TV (`androidx.tv:tv-material`)

@@ -1,0 +1,15 @@
+HA TV Dashboard
+Copyright 2026 Daniel Ring
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This product includes software developed by third parties:
+
+- AndroidX, Jetpack Compose, Compose for TV (Apache License 2.0), Google
+- OkHttp (Apache License 2.0), Square, Inc.
+- kotlinx.serialization and kotlinx.coroutines (Apache License 2.0), JetBrains s.r.o.
+- ZXing "Zebra Crossing" core (Apache License 2.0)
+- NanoHTTPD (BSD 3-Clause License)
+
+Home Assistant is a trademark of the Open Home Foundation. This project is not
+affiliated with or endorsed by Home Assistant, Nabu Casa or the Open Home Foundation.

@@ -202,6 +202,10 @@ Die App ist zweisprachig: **Englisch** (Standard) und **Deutsch**. Sie folgt der
 
 Die Texte liegen in `app/src/main/res/values/strings.xml` (Englisch) und `app/src/main/res/values-de/strings.xml` (Deutsch). Für eine weitere Sprache einen Ordner `values-<Sprachcode>` mit derselben Datei anlegen und den Code in `res/xml/locales_config.xml` eintragen. Code ohne Context lädt Texte über `Res.s(R.string.…)` (`App.kt`). Die Home-Assistant-Oberfläche selbst richtet sich nach der Sprache des HA-Benutzers.
 
+## Lizenz
+
+Lizenziert unter der [Apache License 2.0](LICENSE). Komponenten Dritter und ihre Lizenzen stehen in [NOTICE](NOTICE). Home Assistant ist eine Marke der Open Home Foundation; dieses Projekt steht in keiner Verbindung zu ihr.
+
 ## Technik
 
 - Kotlin, Jetpack Compose for TV (`androidx.tv:tv-material`)
