@@ -178,7 +178,7 @@ Auf beiden Geräten zuerst die Entwickleroptionen aktivieren (Einstellungen → 
 
    ```bash
    adb connect <IP-der-Box>:5555
-   adb install -r ha-tv-dashboard-1.0.1.apk
+   adb install -r ha-tv-dashboard-1.1.0.apk
    adb shell pm list packages | grep hatv     # erwartet: package:io.nachklang.hatv
    ```
 
