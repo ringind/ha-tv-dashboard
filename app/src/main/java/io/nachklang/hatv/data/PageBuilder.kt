@@ -1,5 +1,8 @@
 package io.nachklang.hatv.data
 
+import io.nachklang.hatv.R
+import io.nachklang.hatv.Res
+
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
@@ -67,8 +70,8 @@ class PageBuilder(
                 Page(
                     "home", "Home",
                     listOfNotNull(
-                        Section("Bereiche", areaTiles).takeIf { areaTiles.isNotEmpty() },
-                        Section("Ohne Bereich", domainTiles).takeIf { domainTiles.isNotEmpty() },
+                        Section(Res.s(R.string.p_areas), areaTiles).takeIf { areaTiles.isNotEmpty() },
+                        Section(Res.s(R.string.p_no_area), domainTiles).takeIf { domainTiles.isNotEmpty() },
                         Section("System", listOf(settingsTile())),
                     ),
                 )
@@ -78,7 +81,7 @@ class PageBuilder(
                 val areaId = id.removePrefix("area:")
                 val area = reg.areas[areaId]
                 val list = vis.filter { reg.areaOf(it.entityId) == areaId }
-                Page(id, area?.name ?: "Bereich", byDomainSections(list, area?.name))
+                Page(id, area?.name ?: Res.s(R.string.p_area), byDomainSections(list, area?.name))
             }
 
             id.startsWith("domain:") -> {
@@ -97,10 +100,10 @@ class PageBuilder(
                         if (t.double == UiAction.Open(id)) t.copy(double = null) else t
                     })
                 }
-                Page(id, dev?.name ?: "Gerät", sections)
+                Page(id, dev?.name ?: Res.s(R.string.p_device), sections)
             }
 
-            else -> Page(id, "Unbekannt", emptyList())
+            else -> Page(id, Res.s(R.string.p_unknown), emptyList())
         }
     }
 
@@ -124,7 +127,7 @@ class PageBuilder(
     }
 
     private fun countLine(total: Int, on: Int): String =
-        "$total Entitäten" + if (on > 0) " · $on an" else ""
+        Res.s(R.string.p_count, total) + if (on > 0) " " + Res.s(R.string.p_count_on, on) else ""
 
     private fun byDomainSections(list: List<EntityState>, stripPrefix: String?): List<Section> =
         list.groupBy { it.domain }
@@ -152,9 +155,9 @@ class PageBuilder(
 
     private fun settingsTile() = Tile(
         key = "settings",
-        title = "Einstellungen",
+        title = Res.s(R.string.p_settings),
         icon = "⚙️",
-        stateLine = "Verbindung & Farbe",
+        stateLine = Res.s(R.string.p_conn_color),
         tap = UiAction.Settings,
     )
 
@@ -184,7 +187,7 @@ class PageBuilder(
     }
 
     private fun viewPage(i: Int, pageId: String, states: Map<String, EntityState>, withSettings: Boolean): Page {
-        val v = views.getOrNull(i) ?: return Page(pageId, "Ansicht", emptyList())
+        val v = views.getOrNull(i) ?: return Page(pageId, Res.s(R.string.p_view), emptyList())
         val sections = mutableListOf<Section>()
         var current = mutableListOf<Tile>()
         var currentTitle: String? = null
@@ -244,7 +247,7 @@ class PageBuilder(
                             val act = parseAction(c.obj("tap_action"), null) ?: UiAction.None
                             current += Tile(
                                 key = "card:${type}#${n++}",
-                                title = c.str("name") ?: c.str("title") ?: "Aktion",
+                                title = c.str("name") ?: c.str("title") ?: Res.s(R.string.p_action),
                                 icon = "🔘",
                                 tap = act,
                                 hold = parseAction(c.obj("hold_action"), null),

@@ -1,5 +1,8 @@
 package io.nachklang.hatv.ui
 
+import io.nachklang.hatv.R
+import io.nachklang.hatv.Res
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -68,7 +71,7 @@ class ValueControl(
             "light" -> {
                 val modes = s.attrStrings("supported_color_modes")
                 if (modes.isNotEmpty() && modes.all { it == "onoff" }) null
-                else ValueControl("Helligkeit", 0.0, 100.0, 10.0, "%",
+                else ValueControl(Res.s(R.string.d_brightness), 0.0, 100.0, 10.0, "%",
                     read = { st -> st.attr("brightness")?.let { it / 255.0 * 100 } ?: if (st.state == "on") 100.0 else 0.0 },
                     write = { id, v -> UiAction.Service("light", "turn_on", id, buildJsonObject { put("brightness_pct", v.toInt()) }) })
             }
@@ -77,20 +80,20 @@ class ValueControl(
                     read = { it.attr("current_position") },
                     write = { id, v -> UiAction.Service("cover", "set_cover_position", id, buildJsonObject { put("position", v.toInt()) }) })
             "climate" -> if (s.attr("temperature") == null) null else
-                ValueControl("Solltemperatur", s.attr("min_temp") ?: 7.0, s.attr("max_temp") ?: 30.0,
+                ValueControl(Res.s(R.string.d_target_temp), s.attr("min_temp") ?: 7.0, s.attr("max_temp") ?: 30.0,
                     s.attr("target_temp_step") ?: 0.5, "°C",
                     read = { it.attr("temperature") },
                     write = { id, v -> UiAction.Service("climate", "set_temperature", id, buildJsonObject { put("temperature", v) }) })
             "media_player" -> if (s.attr("volume_level") == null) null else
-                ValueControl("Lautstärke", 0.0, 100.0, 5.0, "%",
+                ValueControl(Res.s(R.string.d_volume), 0.0, 100.0, 5.0, "%",
                     read = { st -> st.attr("volume_level")?.let { it * 100 } },
                     write = { id, v -> UiAction.Service("media_player", "volume_set", id, buildJsonObject { put("volume_level", v / 100.0) }) })
             "fan" -> if (s.attr("percentage") == null) null else
-                ValueControl("Stufe", 0.0, 100.0, s.attr("percentage_step") ?: 10.0, "%",
+                ValueControl(Res.s(R.string.d_level), 0.0, 100.0, s.attr("percentage_step") ?: 10.0, "%",
                     read = { it.attr("percentage") },
                     write = { id, v -> UiAction.Service("fan", "set_percentage", id, buildJsonObject { put("percentage", v.toInt()) }) })
             "input_number", "number" ->
-                ValueControl("Wert", s.attr("min") ?: 0.0, s.attr("max") ?: 100.0, s.attr("step") ?: 1.0,
+                ValueControl(Res.s(R.string.d_value), s.attr("min") ?: 0.0, s.attr("max") ?: 100.0, s.attr("step") ?: 1.0,
                     s.attributes["unit_of_measurement"]?.let { (it as? JsonPrimitive)?.contentOrNull } ?: "",
                     read = { it.state.toDoubleOrNull() },
                     write = { id, v -> UiAction.Service(id.substringBefore('.'), "set_value", id, buildJsonObject { put("value", v) }) })
@@ -105,22 +108,22 @@ fun buttonsFor(s: EntityState): List<Pair<String, UiAction>> {
     fun svc(d: String, service: String) = UiAction.Service(d, service, id)
     return when (s.domain) {
         "light", "switch", "fan", "input_boolean", "siren", "humidifier" ->
-            listOf("Ein" to svc(s.domain, "turn_on"), "Aus" to svc(s.domain, "turn_off"))
-        "automation" -> listOf("Ein" to svc("automation", "turn_on"), "Aus" to svc("automation", "turn_off"),
-            "Auslösen" to svc("automation", "trigger"))
-        "cover" -> listOf("Öffnen" to svc("cover", "open_cover"), "Stopp" to svc("cover", "stop_cover"),
-            "Schließen" to svc("cover", "close_cover"))
+            listOf(Res.s(R.string.b_on) to svc(s.domain, "turn_on"), Res.s(R.string.b_off) to svc(s.domain, "turn_off"))
+        "automation" -> listOf(Res.s(R.string.b_on) to svc("automation", "turn_on"), Res.s(R.string.b_off) to svc("automation", "turn_off"),
+            Res.s(R.string.b_trigger) to svc("automation", "trigger"))
+        "cover" -> listOf(Res.s(R.string.b_open) to svc("cover", "open_cover"), Res.s(R.string.b_stop) to svc("cover", "stop_cover"),
+            Res.s(R.string.b_close) to svc("cover", "close_cover"))
         "media_player" -> listOf("⏯ Play/Pause" to svc("media_player", "media_play_pause"),
             "⏮" to svc("media_player", "media_previous_track"), "⏭" to svc("media_player", "media_next_track"),
-            "Ein/Aus" to svc("media_player", "toggle"))
-        "lock" -> listOf("Verriegeln" to svc("lock", "lock"), "Entriegeln" to svc("lock", "unlock"))
+            Res.s(R.string.b_toggle) to svc("media_player", "toggle"))
+        "lock" -> listOf(Res.s(R.string.b_lock) to svc("lock", "lock"), Res.s(R.string.b_unlock) to svc("lock", "unlock"))
         "climate" -> s.attrStrings("hvac_modes").map { m ->
             hvacLabel(m) to UiAction.Service("climate", "set_hvac_mode", id, buildJsonObject { put("hvac_mode", m) })
         }
-        "scene", "script" -> listOf("Ausführen" to svc(s.domain, "turn_on"))
-        "button", "input_button" -> listOf("Drücken" to svc(s.domain, "press"))
+        "scene", "script" -> listOf(Res.s(R.string.b_run) to svc(s.domain, "turn_on"))
+        "button", "input_button" -> listOf(Res.s(R.string.b_press) to svc(s.domain, "press"))
         "vacuum" -> listOf("Start" to svc("vacuum", "start"), "Pause" to svc("vacuum", "pause"),
-            "Zur Basis" to svc("vacuum", "return_to_base"))
+            Res.s(R.string.b_dock) to svc("vacuum", "return_to_base"))
         "input_select", "select" -> s.attrStrings("options").map { o ->
             o to UiAction.Service(s.domain, "select_option", id, buildJsonObject { put("option", o) })
         }
@@ -129,8 +132,8 @@ fun buttonsFor(s: EntityState): List<Pair<String, UiAction>> {
 }
 
 private fun hvacLabel(m: String) = when (m) {
-    "off" -> "Aus"; "heat" -> "Heizen"; "cool" -> "Kühlen"; "auto" -> "Auto"
-    "heat_cool" -> "Heizen/Kühlen"; "dry" -> "Trocknen"; "fan_only" -> "Lüften"; else -> m
+    "off" -> Res.s(R.string.b_off); "heat" -> Res.s(R.string.h_heat); "cool" -> Res.s(R.string.h_cool); "auto" -> "Auto"
+    "heat_cool" -> Res.s(R.string.h_heat_cool); "dry" -> Res.s(R.string.h_dry); "fan_only" -> Res.s(R.string.h_fan); else -> m
 }
 
 private val HIDDEN_ATTRS = setOf(
@@ -147,7 +150,7 @@ fun DetailScreen(
     onAction: (UiAction) -> Unit,
 ) {
     if (state == null) {
-        Box(Modifier.fillMaxSize().padding(48.dp)) { Text("Entität $entityId nicht gefunden.", color = Muted) }
+        Box(Modifier.fillMaxSize().padding(48.dp)) { Text(Res.s(R.string.d_not_found, entityId), color = Muted) }
         return
     }
     val ctl = remember(entityId) { ValueControl.forEntity(state) }
@@ -179,7 +182,7 @@ fun DetailScreen(
 
         val attrs = state.attributes.filterKeys { it !in HIDDEN_ATTRS }.entries.take(16)
         if (attrs.isNotEmpty()) {
-            Text("Attribute", color = Muted, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+            Text(Res.s(R.string.d_attributes), color = Muted, fontSize = 16.sp, fontWeight = FontWeight.Medium)
             Spacer(Modifier.height(8.dp))
             attrs.forEach { (k, v) ->
                 val txt = (v as? JsonPrimitive)?.contentOrNull ?: v.toString()
@@ -187,7 +190,7 @@ fun DetailScreen(
             }
         }
         Spacer(Modifier.height(8.dp))
-        Text("Zurück-Taste: eine Ebene zurück", color = Muted, fontSize = 12.sp)
+        Text(Res.s(R.string.d_back_hint), color = Muted, fontSize = 12.sp)
     }
 
     LaunchedEffect(entityId) {

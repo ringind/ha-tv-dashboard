@@ -1,5 +1,8 @@
 package io.nachklang.hatv.ui
 
+import io.nachklang.hatv.R
+import io.nachklang.hatv.Res
+
 import android.annotation.SuppressLint
 import android.net.Uri
 import android.view.KeyEvent
@@ -84,8 +87,12 @@ fun WebDashboardScreen(
         val wv = holder[0]
         when {
             menuOpen -> menuOpen = false
-            wv != null && wv.canGoBack() -> wv.goBack()
-            else -> menuOpen = true
+            wv == null -> menuOpen = true
+            else -> wv.evaluateJavascript("window.__tv?window.__tv.back():'none'") { r ->
+                android.util.Log.d("TVDBG", "back -> $r")
+                // 'dialog' / 'page': Skript hat es erledigt; sonst oberste Ebene -> Menü
+                if (r == null || r.contains("none") || r == "null") menuOpen = true
+            }
         }
     }
 
@@ -203,7 +210,7 @@ fun WebDashboardScreen(
                             request.url.host != Uri.parse(cfg.url).host
 
                         override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
-                            error = "WebView-Prozess beendet – bitte Menü → Neu laden"
+                            error = Res.s(R.string.w_proc_gone)
                             return true
                         }
                     }
@@ -218,17 +225,17 @@ fun WebDashboardScreen(
 
         if (loading && error == null) {
             Box(Modifier.fillMaxSize().background(Background), contentAlignment = Alignment.Center) {
-                Text("Lade Home Assistant …", color = Muted, fontSize = 20.sp)
+                Text(Res.s(R.string.w_loading), color = Muted, fontSize = 20.sp)
             }
         }
 
         error?.let {
             Box(Modifier.fillMaxSize().background(Background), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Home Assistant konnte nicht geladen werden", color = Color.White, fontSize = 22.sp)
+                    Text(Res.s(R.string.w_load_failed), color = Color.White, fontSize = 22.sp)
                     Text(cfg.url, color = Muted, fontSize = 15.sp, modifier = Modifier.padding(top = 8.dp))
                     Text(it, color = ErrorColor, fontSize = 16.sp, modifier = Modifier.padding(top = 8.dp))
-                    Text("Zurück-Taste öffnet das Menü", color = Muted, fontSize = 14.sp,
+                    Text(Res.s(R.string.w_back_menu), color = Muted, fontSize = 14.sp,
                         modifier = Modifier.padding(top = 20.dp))
                 }
             }
@@ -314,11 +321,11 @@ private fun WebMenu(
     Box(Modifier.fillMaxSize().background(Color(0xCC000000)), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Text("HA TV Dashboard", color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.SemiBold)
-            MenuButton("In den Hintergrund", accent, first, onBackground)
-            MenuButton("Weiter", accent, null, onResume)
-            MenuButton("Neu laden", accent, null, onReload)
-            MenuButton("Einstellungen", accent, null, onSettings)
-            MenuButton("Beenden", accent, null, onExit)
+            MenuButton(Res.s(R.string.m_background), accent, first, onBackground)
+            MenuButton(Res.s(R.string.m_resume), accent, null, onResume)
+            MenuButton(Res.s(R.string.m_reload), accent, null, onReload)
+            MenuButton(Res.s(R.string.m_settings), accent, null, onSettings)
+            MenuButton(Res.s(R.string.m_exit), accent, null, onExit)
         }
     }
     LaunchedEffect(Unit) {

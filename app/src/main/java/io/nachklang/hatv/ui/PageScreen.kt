@@ -1,5 +1,8 @@
 package io.nachklang.hatv.ui
 
+import io.nachklang.hatv.R
+import io.nachklang.hatv.Res
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -61,7 +64,7 @@ fun PageScreen(
 
         if (page.sections.all { it.tiles.isEmpty() }) {
             Spacer(Modifier.height(24.dp))
-            Text("Keine Einträge auf dieser Ebene.", color = Muted)
+            Text(Res.s(R.string.s_empty), color = Muted)
         }
 
         page.sections.forEach { sec ->

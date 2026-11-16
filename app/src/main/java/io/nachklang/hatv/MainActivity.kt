@@ -152,7 +152,7 @@ private fun Dashboard(vm: AppViewModel, accent: androidx.compose.ui.graphics.Col
             if (now - lastBack < 2000) onExit()
             else {
                 lastBack = now
-                Toast.makeText(ctx, "Zum Beenden erneut Zurück drücken", Toast.LENGTH_SHORT).show()
+                Toast.makeText(ctx, Res.s(R.string.a_press_again), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -163,9 +163,9 @@ private fun Dashboard(vm: AppViewModel, accent: androidx.compose.ui.graphics.Col
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     when (status) {
-                        ConnStatus.Connected -> "Lade Dashboard …"
-                        ConnStatus.Disconnected -> "Keine Verbindung zu Home Assistant – neuer Versuch läuft …"
-                        else -> "Verbinde mit Home Assistant …"
+                        ConnStatus.Connected -> Res.s(R.string.a_loading)
+                        ConnStatus.Disconnected -> Res.s(R.string.a_disconnected)
+                        else -> Res.s(R.string.a_connecting)
                     },
                     color = Muted, fontSize = 20.sp,
                 )
@@ -185,7 +185,7 @@ private fun Dashboard(vm: AppViewModel, accent: androidx.compose.ui.graphics.Col
                     border = focusBorder(accent),
                     scale = focusScale(),
                 ) {
-                    Text("Adresse / Token ändern", fontSize = 18.sp,
+                    Text(Res.s(R.string.a_change_addr), fontSize = 18.sp,
                         modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp))
                 }
                 LaunchedEffect(Unit) {

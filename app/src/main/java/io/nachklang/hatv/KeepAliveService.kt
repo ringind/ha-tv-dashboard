@@ -20,7 +20,7 @@ class KeepAliveService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val nm = getSystemService(NotificationManager::class.java)
         nm.createNotificationChannel(
-            NotificationChannel(CHANNEL, "Bereithalten", NotificationManager.IMPORTANCE_MIN)
+            NotificationChannel(CHANNEL, Res.s(R.string.k_channel), NotificationManager.IMPORTANCE_MIN)
         )
         val open = PendingIntent.getActivity(
             this, 0, Intent(this, MainActivity::class.java),
@@ -29,7 +29,7 @@ class KeepAliveService : Service() {
         val n = Notification.Builder(this, CHANNEL)
             .setSmallIcon(android.R.drawable.ic_menu_view)
             .setContentTitle("HA TV Dashboard")
-            .setContentText("Bereit")
+            .setContentText(Res.s(R.string.k_ready))
             .setContentIntent(open)
             .setOngoing(true)
             .build()

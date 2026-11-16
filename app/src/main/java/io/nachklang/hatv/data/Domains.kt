@@ -1,5 +1,8 @@
 package io.nachklang.hatv.data
 
+import io.nachklang.hatv.R
+import io.nachklang.hatv.Res
+
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlin.math.roundToInt
@@ -28,31 +31,31 @@ private val ORDER = listOf(
 fun domainOrder(d: String): Int = ORDER.indexOf(d).let { if (it < 0) ORDER.size else it }
 
 fun domainLabel(d: String): String = when (d) {
-    "light" -> "Licht"
-    "switch" -> "Schalter"
-    "fan" -> "Ventilatoren"
-    "cover" -> "Rollläden & Tore"
-    "climate" -> "Klima"
-    "media_player" -> "Medien"
-    "lock" -> "Schlösser"
-    "vacuum" -> "Saugroboter"
-    "scene" -> "Szenen"
-    "script" -> "Skripte"
-    "automation" -> "Automationen"
-    "button", "input_button" -> "Tasten"
+    "light" -> Res.s(R.string.dom_light)
+    "switch" -> Res.s(R.string.dom_switch)
+    "fan" -> Res.s(R.string.dom_fan)
+    "cover" -> Res.s(R.string.dom_cover)
+    "climate" -> Res.s(R.string.dom_climate)
+    "media_player" -> Res.s(R.string.dom_media)
+    "lock" -> Res.s(R.string.dom_lock)
+    "vacuum" -> Res.s(R.string.dom_vacuum)
+    "scene" -> Res.s(R.string.dom_scene)
+    "script" -> Res.s(R.string.dom_script)
+    "automation" -> Res.s(R.string.dom_automation)
+    "button", "input_button" -> Res.s(R.string.dom_button)
     "input_boolean" -> "Helfer (Schalter)"
-    "input_number", "number" -> "Werte"
-    "input_select", "select" -> "Auswahl"
-    "humidifier" -> "Luftbefeuchter"
-    "water_heater" -> "Warmwasser"
-    "valve" -> "Ventile"
-    "siren" -> "Sirenen"
-    "alarm_control_panel" -> "Alarmanlage"
-    "person" -> "Personen"
-    "weather" -> "Wetter"
-    "sun" -> "Sonne"
-    "binary_sensor" -> "Binärsensoren"
-    "sensor" -> "Sensoren"
+    "input_number", "number" -> Res.s(R.string.dom_number)
+    "input_select", "select" -> Res.s(R.string.dom_select)
+    "humidifier" -> Res.s(R.string.dom_humidifier)
+    "water_heater" -> Res.s(R.string.dom_water_heater)
+    "valve" -> Res.s(R.string.dom_valve)
+    "siren" -> Res.s(R.string.dom_siren)
+    "alarm_control_panel" -> Res.s(R.string.dom_alarm)
+    "person" -> Res.s(R.string.dom_person)
+    "weather" -> Res.s(R.string.dom_weather)
+    "sun" -> Res.s(R.string.dom_sun)
+    "binary_sensor" -> Res.s(R.string.dom_binary_sensor)
+    "sensor" -> Res.s(R.string.dom_sensor)
     else -> d.replace('_', ' ').replaceFirstChar { it.uppercase() }
 }
 
@@ -85,38 +88,38 @@ fun domainIcon(d: String): String = when (d) {
 
 fun stateText(s: EntityState): String {
     val base = when (s.state) {
-        "on" -> "An"
-        "off" -> "Aus"
-        "open" -> "Offen"
-        "opening" -> "Öffnet …"
-        "closed" -> "Geschlossen"
-        "closing" -> "Schließt …"
-        "locked" -> "Verriegelt"
-        "unlocked" -> "Entriegelt"
-        "playing" -> "Spielt"
-        "paused" -> "Pausiert"
-        "idle" -> "Inaktiv"
+        "on" -> Res.s(R.string.st_on)
+        "off" -> Res.s(R.string.st_off)
+        "open" -> Res.s(R.string.st_open)
+        "opening" -> Res.s(R.string.st_opening)
+        "closed" -> Res.s(R.string.st_closed)
+        "closing" -> Res.s(R.string.st_closing)
+        "locked" -> Res.s(R.string.st_locked)
+        "unlocked" -> Res.s(R.string.st_unlocked)
+        "playing" -> Res.s(R.string.st_playing)
+        "paused" -> Res.s(R.string.st_paused)
+        "idle" -> Res.s(R.string.st_idle)
         "standby" -> "Standby"
-        "home" -> "Zuhause"
-        "not_home" -> "Abwesend"
-        "unavailable" -> "Nicht verfügbar"
-        "unknown" -> "Unbekannt"
-        "heat" -> "Heizen"
-        "cool" -> "Kühlen"
-        "auto" -> "Automatik"
-        "docked" -> "Angedockt"
-        "cleaning" -> "Saugt"
+        "home" -> Res.s(R.string.st_home)
+        "not_home" -> Res.s(R.string.st_away)
+        "unavailable" -> Res.s(R.string.st_unavailable)
+        "unknown" -> Res.s(R.string.st_unknown)
+        "heat" -> Res.s(R.string.st_heating)
+        "cool" -> Res.s(R.string.st_cooling)
+        "auto" -> Res.s(R.string.st_auto)
+        "docked" -> Res.s(R.string.st_docked)
+        "cleaning" -> Res.s(R.string.st_cleaning)
         else -> s.state
     }
     return when {
         s.domain == "light" && s.state == "on" ->
-            s.attr("brightness")?.let { "An · ${(it / 255.0 * 100).roundToInt()} %" } ?: base
+            s.attr("brightness")?.let { Res.s(R.string.st_on_pct, (it / 255.0 * 100).roundToInt()) } ?: base
         s.domain == "cover" && s.state == "open" ->
-            s.attr("current_position")?.let { "Offen · ${it.roundToInt()} %" } ?: base
+            s.attr("current_position")?.let { Res.s(R.string.st_open_pct, it.roundToInt()) } ?: base
         s.domain == "climate" ->
             listOfNotNull(base, s.attr("current_temperature")?.let { "${fmt(it)} °C" }).joinToString(" · ")
         s.domain == "media_player" && s.state == "playing" ->
-            s.attributes.str("media_title")?.let { "Spielt · $it" } ?: base
+            s.attributes.str("media_title")?.let { Res.s(R.string.st_playing_title, it) } ?: base
         else -> s.attributes.str("unit_of_measurement")?.let { "$base $it" } ?: base
     }
 }

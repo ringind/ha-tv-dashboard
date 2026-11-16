@@ -1,5 +1,8 @@
 package io.nachklang.hatv.data
 
+import io.nachklang.hatv.R
+import io.nachklang.hatv.Res
+
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -99,7 +102,7 @@ class HaClient(
             val req = Request.Builder().url(wsUrl()).build()
             ws = http.newWebSocket(req, Listener(closed))
             closed.await()
-            pending.values.forEach { it.completeExceptionally(IOException("Verbindung getrennt")) }
+            pending.values.forEach { it.completeExceptionally(IOException(Res.s(R.string.c_closed))) }
             pending.clear()
             if (_status.value == ConnStatus.AuthFailed || stopped) return
             _status.value = ConnStatus.Disconnected
@@ -138,7 +141,7 @@ class HaClient(
                     else {
                         val err = msg["error"] as? JsonObject
                         d.completeExceptionally(
-                            HaException(err?.str("message") ?: err?.str("code") ?: "Fehler")
+                            HaException(err?.str("message") ?: err?.str("code") ?: Res.s(R.string.c_error))
                         )
                     }
                 }
@@ -179,7 +182,7 @@ class HaClient(
         }
         if (ws?.send(msg.toString()) != true) {
             pending.remove(id)
-            throw IOException("Nicht verbunden")
+            throw IOException(Res.s(R.string.c_not_connected))
         }
         return withTimeout(20_000) { d.await() }
     }

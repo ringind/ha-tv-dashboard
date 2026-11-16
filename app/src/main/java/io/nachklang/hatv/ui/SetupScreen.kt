@@ -1,5 +1,8 @@
 package io.nachklang.hatv.ui
 
+import io.nachklang.hatv.R
+import io.nachklang.hatv.Res
+
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -71,21 +74,21 @@ fun SetupScreen(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f)) {
-            Text("HA TV Dashboard einrichten", fontSize = 30.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+            Text(Res.s(R.string.u_title), fontSize = 30.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
             Spacer(Modifier.height(20.dp))
             if (authFailed) {
-                Text("Der Token wurde von Home Assistant abgelehnt. Bitte neu eingeben.", color = ErrorColor, fontSize = 16.sp)
+                Text(Res.s(R.string.u_token_rejected), color = ErrorColor, fontSize = 16.sp)
                 Spacer(Modifier.height(12.dp))
             }
-            Text("1. QR-Code mit dem Handy scannen (gleiches WLAN)", color = Color.White, fontSize = 18.sp)
-            Text("2. Home-Assistant-Adresse und Long-Lived Access Token eintragen", color = Color.White, fontSize = 18.sp)
-            Text("   (HA → Profil → Sicherheit → Langlebige Zugangstoken)", color = Muted, fontSize = 15.sp)
-            Text("3. Speichern – die App verbindet sich sofort", color = Color.White, fontSize = 18.sp)
+            Text(Res.s(R.string.u_step1), color = Color.White, fontSize = 18.sp)
+            Text(Res.s(R.string.u_step2), color = Color.White, fontSize = 18.sp)
+            Text("   " + Res.s(R.string.u_step2b), color = Muted, fontSize = 15.sp)
+            Text(Res.s(R.string.u_step3), color = Color.White, fontSize = 18.sp)
             Spacer(Modifier.height(20.dp))
-            Text(url ?: "Keine Netzwerkverbindung gefunden", color = accent, fontSize = 22.sp, fontWeight = FontWeight.Medium)
+            Text(url ?: Res.s(R.string.u_no_network), color = accent, fontSize = 22.sp, fontWeight = FontWeight.Medium)
             current?.let {
                 Spacer(Modifier.height(12.dp))
-                Text("Aktuell: ${it.url}", color = Muted, fontSize = 14.sp)
+                Text(Res.s(R.string.u_current, it.url), color = Muted, fontSize = 14.sp)
             }
             if (onCancel != null) {
                 Spacer(Modifier.height(28.dp))
@@ -97,12 +100,12 @@ fun SetupScreen(
                         contentColor = Color.White, focusedContentColor = Color.White),
                     border = focusBorder(accent),
                     scale = focusScale(),
-                ) { Box(Modifier.padding(horizontal = 24.dp, vertical = 14.dp)) { Text("Zurück zum Dashboard") } }
+                ) { Box(Modifier.padding(horizontal = 24.dp, vertical = 14.dp)) { Text(Res.s(R.string.u_back)) } }
             }
         }
         if (qr != null) {
             Box(Modifier.size(460.dp).background(Color.White).padding(10.dp)) {
-                Image(qr.asImageBitmap(), contentDescription = "QR-Code zur Einrichtung", modifier = Modifier.size(440.dp))
+                Image(qr.asImageBitmap(), contentDescription = Res.s(R.string.u_qr_desc), modifier = Modifier.size(440.dp))
             }
         } else {
             Spacer(Modifier.width(1.dp))
@@ -158,11 +161,11 @@ private class SetupServer(
                 onSave(Config(url.trimEnd('/'), token, accent, mode, start, zoom))
                 val host = url.substringAfter("://").substringBefore('/').substringBefore(':')
                 val hint = if (host.endsWith(".local"))
-                    "<p>⚠️ Android TV kann <b>.local</b>-Namen oft nicht auflösen. Falls die Verbindung scheitert, bitte die IP-Adresse von Home Assistant verwenden (z. B. http://192.168.178.x:8123).</p>"
+                    "<p>" + Res.s(R.string.f_hint_local, "<b>.local</b>") + "</p>"
                 else ""
-                html("<h2>✅ Gespeichert</h2><p>Die App auf dem Fernseher verbindet sich jetzt mit <b>${esc(url)}</b>.</p>$hint")
+                html("<h2>✅ ${Res.s(R.string.f_saved)}</h2><p>${Res.s(R.string.f_saved_text, "<b>${esc(url)}</b>")}</p>$hint")
             } else {
-                html("<h2>⚠️ Unvollständig</h2><p>Adresse (http/https) und Token werden benötigt.</p><p><a href='/'>Zurück</a></p>")
+                html("<h2>⚠️ ${Res.s(R.string.f_incomplete)}</h2><p>${Res.s(R.string.f_incomplete_text)}</p><p><a href='/'>${Res.s(R.string.f_back)}</a></p>")
             }
         }
         // .local-Namen kann Android TV oft nicht auflösen -> nicht vorbelegen
@@ -172,28 +175,28 @@ private class SetupServer(
         val curMode = current?.mode ?: "web"
         val s = esc(current?.start ?: "")
         val z = current?.zoom ?: 100
-        val tokenHint = if (current != null) "leer lassen = bisherigen Token behalten" else ""
+        val tokenHint = if (current != null) Res.s(R.string.f_token_keep) else ""
         return html(
             """
             <h2>HA TV Dashboard</h2>
             <form method="post">
-              <label>Home-Assistant-Adresse</label>
+              <label>${Res.s(R.string.f_url)}</label>
               <input name="url" value="$u" placeholder="192.168.178.20" autocapitalize="off" autocorrect="off" inputmode="url">
-              <small style="color:#9aa3ad">IP-Adresse von Home Assistant empfohlen. Schema (http://) und Port (:8123) werden bei Bedarf ergänzt.</small>
-              <label>Long-Lived Access Token</label>
+              <small style="color:#9aa3ad">${Res.s(R.string.f_url_hint)}</small>
+              <label>${Res.s(R.string.f_token)}</label>
               <textarea name="token" rows="5" placeholder="$tokenHint"></textarea>
-              <label>Ansicht</label>
+              <label>${Res.s(R.string.f_mode)}</label>
               <select name="mode">
-                <option value="web" ${if (curMode == "web") "selected" else ""}>Home-Assistant-Oberfläche (wie im Browser)</option>
-                <option value="native" ${if (curMode == "native") "selected" else ""}>Einfache Kacheln (nativ)</option>
+                <option value="web" ${if (curMode == "web") "selected" else ""}>${Res.s(R.string.f_mode_web)}</option>
+                <option value="native" ${if (curMode == "native") "selected" else ""}>${Res.s(R.string.f_mode_native)}</option>
               </select>
-              <label>Startseite (optional)</label>
-              <input name="start" value="$s" placeholder="z. B. dashboard-astrion/home" autocapitalize="off" autocorrect="off">
-              <label>Zoom in % (nur Home-Assistant-Oberfläche)</label>
+              <label>${Res.s(R.string.f_start)}</label>
+              <input name="start" value="$s" placeholder="${Res.s(R.string.f_start_ph)}" autocapitalize="off" autocorrect="off">
+              <label>${Res.s(R.string.f_zoom)}</label>
               <input name="zoom" type="number" value="$z" min="50" max="300">
-              <label>Rahmenfarbe der aktiven Karte</label>
+              <label>${Res.s(R.string.f_accent)}</label>
               <input name="accent" type="color" value="$a">
-              <button type="submit">Speichern</button>
+              <button type="submit">${Res.s(R.string.f_save)}</button>
             </form>
             """.trimIndent()
         )
@@ -202,7 +205,7 @@ private class SetupServer(
     private fun html(body: String): Response = NanoHTTPD.newFixedLengthResponse(
         Response.Status.OK, "text/html; charset=utf-8",
         """
-        <!doctype html><html lang="de"><head><meta charset="utf-8">
+        <!doctype html><html lang="${java.util.Locale.getDefault().language}"><head><meta charset="utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1">
         <title>HA TV Dashboard</title>
         <style>

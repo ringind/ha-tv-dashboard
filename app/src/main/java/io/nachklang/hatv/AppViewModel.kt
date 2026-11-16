@@ -136,10 +136,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             }
             lovelace.value = ll.await()
             val r = reg.await()
-            if (r.errors.isNotEmpty()) messages.tryEmit("Eingeschränkt: ${r.errors.first()}")
+            if (r.errors.isNotEmpty()) messages.tryEmit(Res.s(R.string.v_limited, r.errors.first()))
             registry.value = r
         } catch (e: Exception) {
-            messages.tryEmit("Laden fehlgeschlagen: ${e.message}")
+            messages.tryEmit(Res.s(R.string.v_load_failed, e.message ?: ""))
         }
     }
 
