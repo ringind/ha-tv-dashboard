@@ -178,7 +178,7 @@ On both devices first enable the developer options (Settings → About → click
 
    ```bash
    adb connect <IP-of-the-box>:5555
-   adb install -r ha-tv-dashboard-1.1.0.apk
+   adb install -r ha-tv-dashboard-1.1.1.apk
    adb shell pm list packages | grep hatv     # expected: package:io.nachklang.hatv
    ```
 
