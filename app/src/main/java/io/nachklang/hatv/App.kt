@@ -15,5 +15,5 @@ class App : Application() {
 object Res {
     lateinit var ctx: Context
 
-    fun s(@StringRes id: Int, vararg args: Any): String = ctx.getString(id, *args)
+    fun s(@StringRes id: Int, vararg args: Any): String = if (args.isEmpty()) ctx.getString(id) else ctx.getString(id, *args)
 }
